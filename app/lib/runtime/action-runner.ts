@@ -114,7 +114,7 @@ export class ActionRunner {
 
       this.#updateAction(actionId, { status: action.abortSignal.aborted ? 'aborted' : 'complete' });
     } catch (error) {
-      this.#updateAction(actionId, { status: 'failed', error: 'Action failed' });
+      this.#updateAction(actionId, { status: 'failed', error: 'アクションの実行に失敗しました' });
 
       // re-throw the error to be caught in the promise chain
       throw error;
@@ -123,7 +123,7 @@ export class ActionRunner {
 
   async #runShellAction(action: ActionState) {
     if (action.type !== 'shell') {
-      unreachable('Expected shell action');
+      unreachable('shell アクションを期待しました');
     }
 
     const webcontainer = await this.#webcontainer;
@@ -151,7 +151,7 @@ export class ActionRunner {
 
   async #runFileAction(action: ActionState) {
     if (action.type !== 'file') {
-      unreachable('Expected file action');
+      unreachable('file アクションを期待しました');
     }
 
     const webcontainer = await this.#webcontainer;

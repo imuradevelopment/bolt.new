@@ -34,7 +34,7 @@ export function useChatHistory() {
       setReady(true);
 
       if (persistenceEnabled) {
-        toast.error(`Chat persistence is unavailable`);
+        toast.error(`チャットの永続化機能は利用できません`);
       }
 
       return;

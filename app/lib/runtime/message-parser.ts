@@ -80,7 +80,7 @@ export class StreamingMessageParser {
         const currentArtifact = state.currentArtifact;
 
         if (currentArtifact === undefined) {
-          unreachable('Artifact not initialized');
+          unreachable('アーティファクトが初期化されていません');
         }
 
         if (state.insideAction) {
@@ -252,12 +252,12 @@ export class StreamingMessageParser {
       const filePath = this.#extractAttribute(actionTag, 'filePath') as string;
 
       if (!filePath) {
-        logger.debug('File path not specified');
+        logger.debug('ファイルパスが指定されていません');
       }
 
       (actionAttributes as FileAction).filePath = filePath;
     } else if (actionType !== 'shell') {
-      logger.warn(`Unknown action type '${actionType}'`);
+      logger.warn(`未知のアクションタイプ '${actionType}'`);
     }
 
     return actionAttributes as FileAction | ShellAction;

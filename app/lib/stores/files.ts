@@ -31,19 +31,18 @@ export class FilesStore {
   #webcontainer: Promise<WebContainer>;
 
   /**
-   * Tracks the number of files without folders.
+   * ルート直下のファイル数（フォルダを含まない）を追跡するカウンタ
    */
   #size = 0;
 
   /**
-   * @note Keeps track all modified files with their original content since the last user message.
-   * Needs to be reset when the user sends another message and all changes have to be submitted
-   * for the model to be aware of the changes.
+   * 直近のユーザーメッセージ以降に編集されたファイルの「元の内容」を保持する。
+   * 次のメッセージ送信時に差分をまとめて提示するため、送信後はリセットする必要がある。
    */
   #modifiedFiles: Map<string, string> = import.meta.hot?.data.modifiedFiles ?? new Map();
 
   /**
-   * Map of files that matches the state of WebContainer.
+   * WebContainer 内の現在のファイル状態を表すマップ
    */
   files: MapStore<FileMap> = import.meta.hot?.data.files ?? map({});
 
@@ -126,12 +125,12 @@ export class FilesStore {
     const watchEvents = events.flat(2);
 
     for (const { type, path, buffer } of watchEvents) {
-      // remove any trailing slashes
+      // パス末尾のスラッシュを削除し正規化
       const sanitizedPath = path.replace(/\/+$/g, '');
 
       switch (type) {
         case 'add_dir': {
-          // we intentionally add a trailing slash so we can distinguish files from folders in the file tree
+          // ファイルツリー上でフォルダとファイルを区別しやすくするため、末尾スラッシュ付きで保持
           this.files.setKey(sanitizedPath, { type: 'folder' });
           break;
         }
@@ -155,10 +154,8 @@ export class FilesStore {
           let content = '';
 
           /**
-           * @note This check is purely for the editor. The way we detect this is not
-           * bullet-proof and it's a best guess so there might be false-positives.
-           * The reason we do this is because we don't want to display binary files
-           * in the editor nor allow to edit them.
+           * エディタ表示のための簡易バイナリ判定。
+           * 誤判定の可能性はあるが、バイナリファイルをテキストエディタで開かない目的のため許容する。
            */
           const isBinary = isBinaryFile(buffer);
 
