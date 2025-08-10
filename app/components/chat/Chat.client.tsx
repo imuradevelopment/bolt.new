@@ -79,7 +79,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     api: '/api/chat',
     onError: (error) => {
       logger.error('Request failed\n\n', error);
-      toast.error('There was an error processing your request');
+      toast.error('リクエストの処理中にエラーが発生しました');
     },
     onFinish: () => {
       logger.debug('Finished streaming');

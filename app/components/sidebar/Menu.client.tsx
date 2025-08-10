@@ -39,6 +39,7 @@ export function Menu() {
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
 
+  // 履歴一覧を IndexedDB から読み込む
   const loadEntries = useCallback(() => {
     if (db) {
       getAll(db)
@@ -48,6 +49,7 @@ export function Menu() {
     }
   }, []);
 
+  // 履歴の1件削除処理（成功時は一覧を再読込し、選択中ならトップへ遷移）
   const deleteItem = useCallback((event: React.UIEvent, item: ChatHistoryItem) => {
     event.preventDefault();
 
@@ -62,7 +64,7 @@ export function Menu() {
           }
         })
         .catch((error) => {
-          toast.error('Failed to delete conversation');
+          toast.error('会話の削除に失敗しました');
           logger.error(error);
         });
     }
@@ -115,12 +117,12 @@ export function Menu() {
             className="flex gap-2 items-center bg-bolt-elements-sidebar-buttonBackgroundDefault text-bolt-elements-sidebar-buttonText hover:bg-bolt-elements-sidebar-buttonBackgroundHover rounded-md p-2 transition-theme"
           >
             <span className="inline-block i-bolt:chat scale-110" />
-            Start new chat
+            新しいチャットを開始
           </a>
         </div>
-        <div className="text-bolt-elements-textPrimary font-medium pl-6 pr-5 my-2">Your Chats</div>
+        <div className="text-bolt-elements-textPrimary font-medium pl-6 pr-5 my-2">あなたのチャット</div>
         <div className="flex-1 overflow-scroll pl-4 pr-5 pb-5">
-          {list.length === 0 && <div className="pl-2 text-bolt-elements-textTertiary">No previous conversations</div>}
+          {list.length === 0 && <div className="pl-2 text-bolt-elements-textTertiary">過去の会話はありません</div>}
           <DialogRoot open={dialogContent !== null}>
             {binDates(list).map(({ category, items }) => (
               <div key={category} className="mt-4 first:mt-0 space-y-1">
@@ -135,18 +137,18 @@ export function Menu() {
             <Dialog onBackdrop={closeDialog} onClose={closeDialog}>
               {dialogContent?.type === 'delete' && (
                 <>
-                  <DialogTitle>Delete Chat?</DialogTitle>
+                  <DialogTitle>チャットを削除しますか？</DialogTitle>
                   <DialogDescription asChild>
                     <div>
                       <p>
-                        You are about to delete <strong>{dialogContent.item.description}</strong>.
+                        <strong>{dialogContent.item.description}</strong> を削除しようとしています。
                       </p>
-                      <p className="mt-1">Are you sure you want to delete this chat?</p>
+                      <p className="mt-1">このチャットを削除してもよろしいですか？</p>
                     </div>
                   </DialogDescription>
                   <div className="px-5 pb-4 bg-bolt-elements-background-depth-2 flex gap-2 justify-end">
                     <DialogButton type="secondary" onClick={closeDialog}>
-                      Cancel
+                      キャンセル
                     </DialogButton>
                     <DialogButton
                       type="danger"
@@ -155,7 +157,7 @@ export function Menu() {
                         closeDialog();
                       }}
                     >
-                      Delete
+                      削除
                     </DialogButton>
                   </div>
                 </>

@@ -28,11 +28,11 @@ interface BaseChatProps {
 }
 
 const EXAMPLE_PROMPTS = [
-  { text: 'Build a todo app in React using Tailwind' },
-  { text: 'Build a simple blog using Astro' },
-  { text: 'Create a cookie consent form using Material UI' },
-  { text: 'Make a space invaders game' },
-  { text: 'How do I center a div?' },
+  { text: 'React と Tailwind で ToDo アプリを作って' },
+  { text: 'Astro でシンプルなブログを作って' },
+  { text: 'Material UI でクッキー同意フォームを作って' },
+  { text: 'スペースインベーダー風のゲームを作って' },
+  { text: 'div を中央寄せにする方法は？' },
 ];
 
 const TEXTAREA_MIN_HEIGHT = 76;
@@ -57,6 +57,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     },
     ref,
   ) => {
+    // 入力欄の最大高さはチャット開始前後で切り替える
     const TEXTAREA_MAX_HEIGHT = chatStarted ? 400 : 200;
 
     return (
@@ -73,12 +74,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
               <div id="intro" className="mt-[26vh] max-w-chat mx-auto">
-                <h1 className="text-5xl text-center font-bold text-bolt-elements-textPrimary mb-2">
-                  Where ideas begin
-                </h1>
-                <p className="mb-4 text-center text-bolt-elements-textSecondary">
-                  Bring ideas to life in seconds or get help on existing projects.
-                </p>
+                <h1 className="text-5xl text-center font-bold text-bolt-elements-textPrimary mb-2">アイデアがはじまる場所</h1>
+                <p className="mb-4 text-center text-bolt-elements-textSecondary">数秒でアイデアを形に。既存プロジェクトの支援もお任せください。</p>
               </div>
             )}
             <div
@@ -130,7 +127,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       minHeight: TEXTAREA_MIN_HEIGHT,
                       maxHeight: TEXTAREA_MAX_HEIGHT,
                     }}
-                    placeholder="How can Bolt help you today?"
+                    placeholder="今日はどのようにお手伝いできますか？"
                     translate="no"
                   />
                   <ClientOnly>
@@ -152,7 +149,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   <div className="flex justify-between text-sm p-4 pt-2">
                     <div className="flex gap-1 items-center">
                       <IconButton
-                        title="Enhance prompt"
+                        title="プロンプトを改善"
                         disabled={input.length === 0 || enhancingPrompt}
                         className={classNames({
                           'opacity-100!': enhancingPrompt,
@@ -164,19 +161,19 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         {enhancingPrompt ? (
                           <>
                             <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl"></div>
-                            <div className="ml-1.5">Enhancing prompt...</div>
+                            <div className="ml-1.5">プロンプトを改善中...</div>
                           </>
                         ) : (
                           <>
                             <div className="i-bolt:stars text-xl"></div>
-                            {promptEnhanced && <div className="ml-1.5">Prompt enhanced</div>}
+                            {promptEnhanced && <div className="ml-1.5">プロンプトを改善しました</div>}
                           </>
                         )}
                       </IconButton>
                     </div>
                     {input.length > 3 ? (
                       <div className="text-xs text-bolt-elements-textTertiary">
-                        Use <kbd className="kdb">Shift</kbd> + <kbd className="kdb">Return</kbd> for a new line
+                        改行は <kbd className="kdb">Shift</kbd> + <kbd className="kdb">Enter</kbd>
                       </div>
                     ) : null}
                   </div>

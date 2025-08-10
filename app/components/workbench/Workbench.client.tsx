@@ -22,16 +22,17 @@ interface WorkspaceProps {
   isStreaming?: boolean;
 }
 
+// ワークベンチ内ビューの切替アニメーション設定
 const viewTransition = { ease: cubicEasingFn };
 
 const sliderOptions: SliderOptions<WorkbenchViewType> = {
   left: {
     value: 'code',
-    text: 'Code',
+    text: 'コード',
   },
   right: {
     value: 'preview',
-    text: 'Preview',
+    text: 'プレビュー',
   },
 };
 
@@ -91,7 +92,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
 
   const onFileSave = useCallback(() => {
     workbenchStore.saveCurrentDocument().catch(() => {
-      toast.error('Failed to update file content');
+      toast.error('ファイルの更新に失敗しました');
     });
   }, []);
 
@@ -129,7 +130,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
                     }}
                   >
                     <div className="i-ph:terminal" />
-                    Toggle Terminal
+                    ターミナル表示切替
                   </PanelHeaderButton>
                 )}
                 <IconButton

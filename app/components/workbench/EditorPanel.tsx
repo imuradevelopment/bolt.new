@@ -37,11 +37,14 @@ interface EditorPanelProps {
   onFileReset?: () => void;
 }
 
-const MAX_TERMINALS = 3;
-const DEFAULT_TERMINAL_SIZE = 25;
-const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
+  // 同時に開けるターミナルの最大数
+  const MAX_TERMINALS = 3;
+  // レイアウトの初期サイズ（%）: エディタ/ターミナル
+  const DEFAULT_TERMINAL_SIZE = 25;
+  const DEFAULT_EDITOR_SIZE = 100 - DEFAULT_TERMINAL_SIZE;
 
-const editorSettings: EditorSettings = { tabSize: 2 };
+  // エディタ設定（タブサイズなど）
+  const editorSettings: EditorSettings = { tabSize: 2 };
 
 export const EditorPanel = memo(
   ({
@@ -130,7 +133,7 @@ export const EditorPanel = memo(
               <div className="flex flex-col border-r border-bolt-elements-borderColor h-full">
                 <PanelHeader>
                   <div className="i-ph:tree-structure-duotone shrink-0" />
-                  Files
+                  ファイル
                 </PanelHeader>
                 <FileTree
                   className="h-full"
@@ -153,11 +156,11 @@ export const EditorPanel = memo(
                       <div className="flex gap-1 ml-auto -mr-1.5">
                         <PanelHeaderButton onClick={onFileSave}>
                           <div className="i-ph:floppy-disk-duotone" />
-                          Save
+                          保存
                         </PanelHeaderButton>
                         <PanelHeaderButton onClick={onFileReset}>
                           <div className="i-ph:clock-counter-clockwise-duotone" />
-                          Reset
+                          元に戻す
                         </PanelHeaderButton>
                       </div>
                     )}
