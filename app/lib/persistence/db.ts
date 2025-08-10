@@ -134,6 +134,7 @@ export async function getUrlId(db: IDBDatabase, id: string): Promise<string> {
   }
 }
 
+// 既存の URL ID 一覧を全件走査で取得（重複回避のための採番に使用）
 async function getUrlIds(db: IDBDatabase): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('chats', 'readonly');

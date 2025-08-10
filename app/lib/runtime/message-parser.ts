@@ -1,8 +1,21 @@
+/**
+ * StreamingMessageParser
+ *
+ * 日本語概要:
+ * - LLM からストリーミング受信するテキストの中から、
+ *   <boltArtifact ...> ... </boltArtifact> と <boltAction ...> ... </boltAction>
+ *   を安全に抽出し、UI（ワークベンチ）にアーティファクト/アクションの開始・終了イベントを通知する。
+ * - ストリームは任意の境界で分割されるため、タグが分割されて届くケースに備え、
+ *   メッセージ単位で状態（位置・アクション/アーティファクト内フラグ等）を保持する。
+ * - “なぜ”: UI はアクションを逐次実行し、ファイル生成やコマンド実行をすぐに反映したい。
+ *   そのため、テキストの人間向け表示とマシン向け指示（タグ）の分離が必要。
+ */
 import type { ActionType, BoltAction, BoltActionData, FileAction, ShellAction } from '~/types/actions';
 import type { BoltArtifactData } from '~/types/artifact';
 import { createScopedLogger } from '~/utils/logger';
 import { unreachable } from '~/utils/unreachable';
 
+// タグ定義（LLM 出力内に現れる制御タグ）
 const ARTIFACT_TAG_OPEN = '<boltArtifact';
 const ARTIFACT_TAG_CLOSE = '</boltArtifact>';
 const ARTIFACT_ACTION_TAG_OPEN = '<boltAction';
@@ -51,11 +64,21 @@ interface MessageState {
   actionId: number;
 }
 
+/**
+ * メッセージ単位でストリームをパースするクラス。
+ * - 各メッセージ ID ごとにパース位置と状態を保持し、追記ストリームでも再入可能にする。
+ */
 export class StreamingMessageParser {
   #messages = new Map<string, MessageState>();
 
   constructor(private _options: StreamingMessageParserOptions = {}) {}
 
+  /**
+   * 与えられたメッセージ ID の連続ストリームに対して、
+   * 新規に到着した `input` 片をパースし、ユーザー表示用テキストを返す。
+   * - アーティファクト/アクションの開始・終了時にコールバックを発火する。
+   * - タグが分割される場合もあるため、次回チャンクでの再開に備えて位置を保存する。
+   */
   parse(messageId: string, input: string) {
     let state = this.#messages.get(messageId);
 
@@ -234,10 +257,18 @@ export class StreamingMessageParser {
     return output;
   }
 
+  /**
+   * すべてのメッセージ状態を破棄し、最初からパースし直せるようにする。
+   * 開発時（HMR）やストリーム終了後の再描画で利用。
+   */
   reset() {
     this.#messages.clear();
   }
 
+  /**
+   * <boltAction ...> のオープニングタグから type / filePath などの属性を抽出する。
+   * 不正/未知の type の場合は warn ログを出す。
+   */
   #parseActionTag(input: string, actionOpenIndex: number, actionEndIndex: number) {
     const actionTag = input.slice(actionOpenIndex, actionEndIndex + 1);
 
@@ -263,6 +294,9 @@ export class StreamingMessageParser {
     return actionAttributes as FileAction | ShellAction;
   }
 
+  /**
+   * 汎用属性抽出ユーティリティ（大小無視）。存在しなければ undefined。
+   */
   #extractAttribute(tag: string, attributeName: string): string | undefined {
     const match = tag.match(new RegExp(`${attributeName}="([^"]*)"`, 'i'));
     return match ? match[1] : undefined;
