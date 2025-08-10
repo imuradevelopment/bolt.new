@@ -14,7 +14,7 @@ By building with the Bolt + WebContainer API you can create browser-based applic
 
 # Get Started Building with Bolt
 
-Bolt combines the capabilities of AI with sandboxed development environments to create a collaborative experience where code can be developed by the assistant and the programmer together. Bolt combines [WebContainer API](https://webcontainers.io/api) with [Claude Sonnet 3.5](https://www.anthropic.com/news/claude-3-5-sonnet) using [Remix](https://remix.run/) and the [AI SDK](https://sdk.vercel.ai/).
+Bolt combines the capabilities of AI with sandboxed development environments to create a collaborative experience where code can be developed by the assistant and the programmer together. Bolt combines [WebContainer API](https://webcontainers.io/api) with **Gemini** using [Remix](https://remix.run/) and the [AI SDK](https://sdk.vercel.ai/).
 
 ### WebContainer API
 
@@ -31,9 +31,9 @@ deployed using [CloudFlare Pages](https://pages.cloudflare.com/) and
 ### AI SDK Integration
 
 Bolt uses the [AI SDK](https://github.com/vercel/ai) to integrate with AI
-models. At this time, Bolt supports using Anthropic's Claude Sonnet 3.5.
-You can get an API key from the [Anthropic API Console](https://console.anthropic.com/) to use with Bolt.
-Take a look at how [Bolt uses the AI SDK](https://github.com/stackblitz/bolt.new/tree/main/app/lib/.server/llm)
+models. This setup uses Google's Gemini family.
+You can get an API key from the `Google AI Studio`.
+Take a look at how [Bolt uses the AI SDK](./app/lib/.server/llm)
 
 ## Prerequisites
 
@@ -59,7 +59,8 @@ pnpm install
 3. Create a `.env.local` file in the root directory and add your Anthropic API key:
 
 ```
-ANTHROPIC_API_KEY=XXX
+GEMINI_API_KEY=XXX
+GEMINI_MODEL=gemini-2.5-pro
 ```
 
 Optionally, you can set the debug level:
