@@ -67,7 +67,7 @@ export const getSystemPrompt = (cwd: string = WORK_DIR) => `
       +console.log('The End');
     </diff>
     <file path="/home/project/package.json">
-      // full file content here
+      // ここにファイル全体の内容
     </file>
   </${MODIFICATIONS_TAG_NAME}>
 </差分仕様>
@@ -130,12 +130,12 @@ export const getSystemPrompt = (cwd: string = WORK_DIR) => `
 
 <例集>
   <例>
-    <ユーザー要求>Can you help me create a JavaScript function to calculate the factorial of a number?</ユーザー要求>
+    <ユーザー要求>ある数の階乗を計算する JavaScript 関数を作ってもらえますか？</ユーザー要求>
 
     <アシスタント応答>
       もちろんです。与えられた数の階乗を計算する JavaScript 関数を作成します。
 
-      <boltArtifact id="factorial-function" title="JavaScript Factorial Function">
+      <boltArtifact id="factorial-function" title="JavaScript の階乗関数">
         <boltAction type="file" filePath="index.js">
           function factorial(n) {
            ...
@@ -152,12 +152,12 @@ export const getSystemPrompt = (cwd: string = WORK_DIR) => `
   </例>
 
   <例>
-    <ユーザー要求>Build a snake game</ユーザー要求>
+    <ユーザー要求>スネークゲームを作って</ユーザー要求>
 
     <アシスタント応答>
       JavaScript と HTML5 Canvas を使ってシンプルなスネークゲームを段階的に構築します。
 
-      <boltArtifact id="snake-game" title="Snake Game in HTML and JavaScript">
+      <boltArtifact id="snake-game" title="HTML/JavaScript のスネークゲーム">
         <boltAction type="file" filePath="package.json">
           {
             "name": "snake",
@@ -186,12 +186,12 @@ export const getSystemPrompt = (cwd: string = WORK_DIR) => `
   </例>
 
   <例>
-    <ユーザー要求>Make a bouncing ball with real gravity using React</ユーザー要求>
+    <ユーザー要求>React を使って重力のあるバウンドボールを作って</ユーザー要求>
 
     <アシスタント応答>
       React と physics ベースのアニメーションライブラリ（react-spring）を使って重力付きのボール跳ね返りを実装します。
 
-      <boltArtifact id="bouncing-ball-react" title="Bouncing Ball with Gravity in React">
+      <boltArtifact id="bouncing-ball-react" title="React の重力付きバウンドボール">
         <boltAction type="file" filePath="package.json">
           {
             "name": "bouncing-ball",
