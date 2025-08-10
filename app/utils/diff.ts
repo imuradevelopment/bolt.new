@@ -52,10 +52,10 @@ export function computeFileModifications(files: FileMap, modifiedFiles: Map<stri
 }
 
 /**
- * Computes a diff in the unified format. The only difference is that the header is omitted
- * because it will always assume that you're comparing two versions of the same file and
- * it allows us to avoid the extra characters we send back to the llm.
- *
+ * 統一 diff 形式（Unified format）の差分を生成する。
+ * ここではヘッダ（---/+++）を省略して返す。
+ * - 同一ファイルの旧/新を比較する前提のため、ヘッダは冗長となる
+ * - LLM に送る文字数を抑える目的
  * @see https://www.gnu.org/software/diffutils/manual/html_node/Unified-Format.html
  */
 export function diffFiles(fileName: string, oldFileContent: string, newFileContent: string) {
@@ -76,10 +76,9 @@ export function diffFiles(fileName: string, oldFileContent: string, newFileConte
 }
 
 /**
- * Converts the unified diff to HTML.
+ * 統一 diff を HTML 文字列へ変換する。
  *
- * Example:
- *
+ * 例:
  * ```html
  * <bolt_file_modifications>
  * <diff path="/home/project/index.js">
