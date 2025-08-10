@@ -219,7 +219,7 @@ export const EditorPanel = memo(
                       onClick={() => setActiveTerminal(index)}
                     >
                       <div className="i-ph:terminal-window-duotone text-lg" />
-                      Terminal {terminalCount > 1 && index + 1}
+                      ターミナル {terminalCount > 1 && index + 1}
                     </button>
                   );
                 })}
@@ -227,7 +227,7 @@ export const EditorPanel = memo(
                 <IconButton
                   className="ml-auto"
                   icon="i-ph:caret-down"
-                  title="Close"
+                  title="閉じる"
                   size="md"
                   onClick={() => workbenchStore.toggleTerminal(false)}
                 />
