@@ -1,3 +1,10 @@
+/**
+ * useSnapScroll
+ *
+ * 日本語概要:
+ * - チャットメッセージの自動スクロールを行うためのフック。
+ * - 末尾近くにいるときのみ最新へスナップし、途中を読んでいるときは自動スクロールを抑止。
+ */
 import { useRef, useCallback } from 'react';
 
 export function useSnapScroll() {

@@ -1,7 +1,16 @@
+/**
+ * useShortcuts
+ *
+ * 日本語概要:
+ * - `settings` ストアのショートカット設定に基づいて、keydown をリッスンし、
+ *   一致したら EventTarget ベースの簡易エミッターでイベントを発火する。
+ * - 実行関数 `shortcut.action()` も即時呼び出し、UI 側で副作用を起こす（例: ターミナル切替）。
+ */
 import { useStore } from '@nanostores/react';
 import { useEffect } from 'react';
 import { shortcutsStore, type Shortcuts } from '~/lib/stores/settings';
 
+// シンプルなイベントエミッター（ブラウザ標準 EventTarget を利用）
 class ShortcutEventEmitter {
   #emitter = new EventTarget();
 

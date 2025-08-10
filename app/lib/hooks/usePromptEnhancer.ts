@@ -1,3 +1,11 @@
+/**
+ * usePromptEnhancer
+ *
+ * 日本語概要:
+ * - 入力中のプロンプトを `/api/enhancer` に送り、改善版をストリーミングで受け取りながら
+ *   入力欄へリアルタイム反映するフック。
+ * - エラー時は元の入力を復元し、状態フラグで UI に進行状況を伝える。
+ */
 import { useState } from 'react';
 import { createScopedLogger } from '~/utils/logger';
 
