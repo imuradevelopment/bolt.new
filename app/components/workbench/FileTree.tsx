@@ -1,3 +1,10 @@
+/**
+ * FileTree
+ *
+ * 日本語概要:
+ * - フラットな FileMap からフォルダ/ファイルのリストを構築し、
+ *   折りたたみや非表示パターンを適用して描画するツリー UI。
+ */
 import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { FileMap } from '~/lib/stores/files';
 import { classNames } from '~/utils/classNames';

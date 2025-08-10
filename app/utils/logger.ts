@@ -1,3 +1,4 @@
+// ログレベル定義
 export type DebugLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 type LoggerFunction = (...messages: any[]) => void;
@@ -11,8 +12,10 @@ interface Logger {
   setLevel: (level: DebugLevel) => void;
 }
 
+// 環境変数 VITE_LOG_LEVEL（未設定時は DEV:debug / PROD:info）
 let currentLevel: DebugLevel = import.meta.env.VITE_LOG_LEVEL ?? import.meta.env.DEV ? 'debug' : 'info';
 
+// Cloudflare Workers 環境ではカラー出力不可
 const isWorker = 'HTMLRewriter' in globalThis;
 const supportsColor = !isWorker;
 
@@ -36,6 +39,7 @@ export function createScopedLogger(scope: string): Logger {
   };
 }
 
+// 実行時にレベルを変更（本番では trace/debug は無効）
 function setLevel(level: DebugLevel) {
   if ((level === 'trace' || level === 'debug') && import.meta.env.PROD) {
     return;
@@ -44,6 +48,7 @@ function setLevel(level: DebugLevel) {
   currentLevel = level;
 }
 
+// 1行にまとめてロギング。スコープ付きスタイル表示（ブラウザのみ）
 function log(level: DebugLevel, scope: string | undefined, messages: any[]) {
   const levelOrder: DebugLevel[] = ['trace', 'debug', 'info', 'warn', 'error'];
 

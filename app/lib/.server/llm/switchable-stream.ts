@@ -1,3 +1,10 @@
+/**
+ * SwitchableStream
+ *
+ * 日本語概要:
+ * - 現在の読み取り元 ReadableStream を途中で別ストリームへ切り替え可能な TransformStream。
+ * - LLM 応答がトークン上限で中断された際の「継続」ストリーム差し替えに利用する。
+ */
 export default class SwitchableStream extends TransformStream {
   private _controller: TransformStreamDefaultController | null = null;
   private _currentReader: ReadableStreamDefaultReader | null = null;
@@ -19,6 +26,9 @@ export default class SwitchableStream extends TransformStream {
     this._controller = controllerRef;
   }
 
+  /**
+   * 読み取り元ストリームを差し替える（前の reader は cancel）。
+   */
   async switchSource(newStream: ReadableStream) {
     if (this._currentReader) {
       await this._currentReader.cancel();
@@ -31,6 +41,9 @@ export default class SwitchableStream extends TransformStream {
     this._switches++;
   }
 
+  /**
+   * 現在の reader から読み取り、到着チャンクをそのまま下流へ enqueue。
+   */
   private async _pumpStream() {
     if (!this._currentReader || !this._controller) {
       throw new Error('Stream is not properly initialized');
@@ -52,6 +65,9 @@ export default class SwitchableStream extends TransformStream {
     }
   }
 
+  /**
+   * 現在の reader をキャンセルし、コントローラを terminate。
+   */
   close() {
     if (this._currentReader) {
       this._currentReader.cancel();

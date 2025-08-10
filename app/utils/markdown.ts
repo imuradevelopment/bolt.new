@@ -5,6 +5,7 @@ import rehypeSanitize, { defaultSchema, type Options as RehypeSanitizeOptions } 
 import { SKIP, visit } from 'unist-util-visit';
 import type { UnistNode, UnistParent } from 'node_modules/unist-util-visit/lib';
 
+// LLM 出力で許可する HTML タグ一覧（サニタイズ用）
 export const allowedHTMLElements = [
   'a',
   'b',
@@ -56,6 +57,7 @@ export const allowedHTMLElements = [
   'var',
 ];
 
+// サニタイズ設定：bolt のアーティファクト埋め込み用の div 属性を許可
 const rehypeSanitizeOptions: RehypeSanitizeOptions = {
   ...defaultSchema,
   tagNames: allowedHTMLElements,
@@ -66,6 +68,7 @@ const rehypeSanitizeOptions: RehypeSanitizeOptions = {
   strip: [],
 };
 
+// remark プラグイン構成（limitedMarkdown=true で構造を制限）
 export function remarkPlugins(limitedMarkdown: boolean) {
   const plugins: PluggableList = [remarkGfm];
 
@@ -76,6 +79,7 @@ export function remarkPlugins(limitedMarkdown: boolean) {
   return plugins;
 }
 
+// rehype プラグイン構成（html=true で生 HTML をサニタイズして許可）
 export function rehypePlugins(html: boolean) {
   const plugins: PluggableList = [];
 
@@ -86,6 +90,7 @@ export function rehypePlugins(html: boolean) {
   return plugins;
 }
 
+// Markdown を段落/コード等の最小要素に制限するためのカスタムプラグイン
 const limitedMarkdownPlugin: Plugin = () => {
   return (tree, file) => {
     const contents = file.toString();

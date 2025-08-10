@@ -1,3 +1,10 @@
+/**
+ * FileBreadcrumb
+ *
+ * 日本語概要:
+ * - 現在開いているファイルのパスをパンくずで表示し、
+ *   各セグメントからそのフォルダ配下をクイックナビできるコンテキストメニューを提供。
+ */
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { memo, useEffect, useRef, useState } from 'react';

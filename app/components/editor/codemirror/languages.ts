@@ -1,3 +1,6 @@
+/**
+ * サポートする言語と遅延ロード設定
+ */
 import { LanguageDescription } from '@codemirror/language';
 
 export const supportedLanguages = [

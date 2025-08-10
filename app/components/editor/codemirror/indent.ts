@@ -1,3 +1,6 @@
+/**
+ * インデント操作（Tab/Shift+Tab）を CodeMirror v6 に実装
+ */
 import { indentLess } from '@codemirror/commands';
 import { indentUnit } from '@codemirror/language';
 import { EditorSelection, EditorState, Line, type ChangeSpec } from '@codemirror/state';

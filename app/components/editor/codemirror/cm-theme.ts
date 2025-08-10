@@ -1,3 +1,8 @@
+/**
+ * CodeMirror テーマ設定
+ * - VSCode ライクなライト/ダークテーマを切替
+ * - エディタ各部の CSS 変数を UI テーマ変数に合わせて上書き
+ */
 import { Compartment, type Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
