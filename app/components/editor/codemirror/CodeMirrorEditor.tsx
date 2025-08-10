@@ -1,3 +1,12 @@
+/**
+ * CodeMirrorEditor
+ *
+ * 日本語概要:
+ * - CodeMirror v6 を用いたエディタラッパー。テーマ、言語、ショートカット、
+ *   読み取り専用時のツールチップ、スクロール/変更イベントのデバウンス通知などを提供。
+ * - ドキュメント（ファイル）ごとに EditorState を再利用し、不要な再構築を避ける。
+ * - Cmd/Ctrl+S で保存、Tab で補完確定などの基本キー操作を定義。
+ */
 import { acceptCompletion, autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { bracketMatching, foldGutter, indentOnInput, indentUnit } from '@codemirror/language';
@@ -78,6 +87,7 @@ type EditorStates = Map<string, EditorState>;
 
 const readOnlyTooltipStateEffect = StateEffect.define<boolean>();
 
+// 読み取り専用時に表示するツールチップの状態フィールド
 const editableTooltipField = StateField.define<readonly Tooltip[]>({
   create: () => [],
   update(_tooltips, transaction) {
@@ -100,6 +110,7 @@ const editableTooltipField = StateField.define<readonly Tooltip[]>({
 
 const editableStateEffect = StateEffect.define<boolean>();
 
+// editable フラグを EditorState に載せるためのフィールド
 const editableStateField = StateField.define<boolean>({
   create() {
     return true;
@@ -147,6 +158,7 @@ export const CodeMirrorEditor = memo(
      * This effect is used to avoid side effects directly in the render function
      * and instead the refs are updated after each render.
      */
+    // レンダリング後に最新の props を参照できるよう、ref を同期する
     useEffect(() => {
       onScrollRef.current = onScroll;
       onChangeRef.current = onChange;
@@ -155,6 +167,7 @@ export const CodeMirrorEditor = memo(
       themeRef.current = theme;
     });
 
+    // 初回マウント時に EditorView を生成し、カスタム dispatch で onChange を呼び出す
     useEffect(() => {
       const onUpdate = debounce((update: EditorUpdate) => {
         onChangeRef.current?.(update);
@@ -192,6 +205,7 @@ export const CodeMirrorEditor = memo(
       };
     }, []);
 
+    // テーマ変更時にエディタへ反映
     useEffect(() => {
       if (!viewRef.current) {
         return;
@@ -202,10 +216,12 @@ export const CodeMirrorEditor = memo(
       });
     }, [theme]);
 
+    // id 変化時に EditorState マップを初期化（別タブ/コンテキスト相当）
     useEffect(() => {
       editorStatesRef.current = new Map<string, EditorState>();
     }, [id]);
 
+    // ドキュメント切替/更新時の反映ロジック
     useEffect(() => {
       const editorStates = editorStatesRef.current!;
       const view = viewRef.current!;
@@ -266,6 +282,7 @@ export default CodeMirrorEditor;
 
 CodeMirrorEditor.displayName = 'CodeMirrorEditor';
 
+// 新規 EditorState を生成するヘルパ
 function newEditorState(
   content: string,
   theme: Theme,
@@ -278,6 +295,7 @@ function newEditorState(
   return EditorState.create({
     doc: content,
     extensions: [
+      // スクロール/keydown の DOM ハンドラ
       EditorView.domEventHandlers({
         scroll: debounce((event, view) => {
           if (event.target !== view.scrollDOM) {
@@ -300,6 +318,7 @@ function newEditorState(
       }),
       getTheme(theme, settings),
       history(),
+      // 基本キーマップと独自ショートカット
       keymap.of([
         ...defaultKeymap,
         ...historyKeymap,
@@ -319,6 +338,7 @@ function newEditorState(
       autocompletion({
         closeOnBlur: false,
       }),
+      // 補完ツールチップ等の位置調整
       tooltips({
         position: 'absolute',
         parent: document.body,
@@ -360,6 +380,7 @@ function newEditorState(
   });
 }
 
+// ドキュメントなし（空）をエディタに設定
 function setNoDocument(view: EditorView) {
   view.dispatch({
     selection: { anchor: 0 },
@@ -373,6 +394,7 @@ function setNoDocument(view: EditorView) {
   view.scrollDOM.scrollTo(0, 0);
 }
 
+// ドキュメントをエディタに適用し、言語/テーマ/スクロール/フォーカスを更新
 function setEditorDocument(
   view: EditorView,
   theme: Theme,
@@ -434,6 +456,7 @@ function setEditorDocument(
   });
 }
 
+// 読み取り専用時に、キャレット位置に編集不可のツールチップを出す
 function getReadOnlyTooltip(state: EditorState) {
   if (!state.readOnly) {
     return [];
@@ -452,7 +475,7 @@ function getReadOnlyTooltip(state: EditorState) {
         create: () => {
           const divElement = document.createElement('div');
           divElement.className = 'cm-readonly-tooltip';
-          divElement.textContent = 'Cannot edit file while AI response is being generated';
+          divElement.textContent = 'AI の応答生成中は編集できません';
 
           return { dom: divElement };
         },
