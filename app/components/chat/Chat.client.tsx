@@ -1,3 +1,11 @@
+/**
+ * Chat.client
+ *
+ * 日本語概要:
+ * - 入力欄とメッセージ表示を管理し、/api/chat へストリーミング送信する UI ロジック。
+ * - 送信時に未保存ファイルを保存し、差分を HTML で先頭に付与して LLM に伝える。
+ * - プロンプト強化（/api/enhancer）やショートカット、スクロール制御と連携。
+ */
 import { useStore } from '@nanostores/react';
 import type { Message } from 'ai';
 import { useChat } from 'ai/react';

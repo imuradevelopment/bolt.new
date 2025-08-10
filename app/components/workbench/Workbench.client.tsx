@@ -1,3 +1,12 @@
+/**
+ * Workbench.client
+ *
+ * 日本語概要:
+ * - 左: コード（エディタ/ファイルツリー/ターミナル） 右: プレビュー（ポート）
+ * - チャットの出力（アーティファクト/アクション）に応じて Workbench を開閉し、
+ *   編集や実行結果を即時反映する UI コンテナ。
+ * - スライダーで「コード / プレビュー」をトグルし、ターミナル表示も切替可能。
+ */
 import { useStore } from '@nanostores/react';
 import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { computed } from 'nanostores';

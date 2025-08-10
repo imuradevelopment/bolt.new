@@ -1,3 +1,11 @@
+/**
+ * EditorPanel
+ *
+ * 日本語概要:
+ * - 左ペイン: ファイルツリー / 中央: エディタ / 下部: ターミナル
+ * - パネルリサイズやタブ風切替を提供。未保存の検知、保存/元に戻す操作をヘッダに配置。
+ * - Workbench と連携し、ショートカットでターミナル表示をトグル。
+ */
 import { useStore } from '@nanostores/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels';

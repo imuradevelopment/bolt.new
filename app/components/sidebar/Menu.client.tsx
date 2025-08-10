@@ -1,3 +1,11 @@
+/**
+ * Menu.client
+ *
+ * 日本語概要:
+ * - 画面左のホバーで開閉するサイドメニュー。
+ * - 履歴（IndexedDB）をカテゴリ分け（今日/昨日/今週/月/直近30日）で表示し、
+ *   クリックで対象チャットへ遷移。削除ダイアログも提供。
+ */
 import { motion, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
