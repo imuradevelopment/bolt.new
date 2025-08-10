@@ -1,3 +1,12 @@
+/**
+ * /api/chat
+ *
+ * 日本語概要:
+ * - チャット用ストリーミング API。クライアントから受け取った messages を AI SDK に渡し、
+ *   ストリーミングで応答を返す。
+ * - トークン上限に達した場合は SwitchableStream で読み取り元を差し替え、
+ *   追加メッセージ（<CONTINUE> 相当）を送って続きを取得する。
+ */
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '~/lib/.server/llm/constants';
 import { CONTINUE_PROMPT } from '~/lib/.server/llm/prompts';
@@ -22,12 +31,12 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         }
 
         if (stream.switches >= MAX_RESPONSE_SEGMENTS) {
-          throw Error('Cannot continue message: Maximum segments reached');
+          throw Error('継続できません: 最大セグメント数に到達しました');
         }
 
         const switchesLeft = MAX_RESPONSE_SEGMENTS - stream.switches;
 
-        console.log(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
+        console.log(`最大トークン (${MAX_TOKENS}) に到達: 続きを取得します（残り ${switchesLeft} 回）`);
 
         messages.push({ role: 'assistant', content });
         messages.push({ role: 'user', content: CONTINUE_PROMPT });

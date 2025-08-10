@@ -1,3 +1,11 @@
+/**
+ * /api/enhancer
+ *
+ * 日本語概要:
+ * - 入力されたプロンプト文を「改善」するエンドポイント。
+ * - AI に対して、改善結果のみをストリーミングで返すよう指示し、
+ *   受け取ったチャンクから AI SDK のパース情報を除去して、テキストだけを返す。
+ */
 import { type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { StreamingTextResponse, parseStreamPart } from 'ai';
 import { streamText } from '~/lib/.server/llm/stream-text';
@@ -19,9 +27,9 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
         {
           role: 'user',
           content: stripIndents`
-          I want you to improve the user prompt that is wrapped in \`<original_prompt>\` tags.
+          次の \`<original_prompt>\` タグで囲まれたユーザープロンプトを、より明確で効果的な内容に改善してください。
 
-          IMPORTANT: Only respond with the improved prompt and nothing else!
+          重要: 改善後のプロンプト「のみ」を返し、それ以外は一切出力しないでください。（前置き/説明/補足は禁止）
 
           <original_prompt>
             ${message}
