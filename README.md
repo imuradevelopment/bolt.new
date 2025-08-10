@@ -1,54 +1,45 @@
-[![Bolt.new: AI-Powered Full-Stack Web Development in the Browser](./public/social_preview_index.jpg)](https://bolt.new)
+![Bolt.new: ブラウザで動く AI 支援フルスタック開発](./public/social_preview_index.jpg)
 
-# Bolt.new: AI-Powered Full-Stack Web Development in the Browser
+## Bolt.new: ブラウザで動く AI 支援フルスタック開発
 
-Bolt.new is an AI-powered web development agent that allows you to prompt, run, edit, and deploy full-stack applications directly from your browser—no local setup required. If you're here to build your own AI-powered web dev agent using the Bolt open source codebase, [click here to get started!](./CONTRIBUTING.md)
+Bolt.new は、ブラウザだけでフルスタックアプリの作成・実行・編集・デプロイまで行える AI 駆動の開発エージェントです。ローカルセットアップは不要です。Bolt のオープンソースコードを使って自分用の AI 開発エージェントを構築したい方は、[こちらのガイド](./CONTRIBUTING.md)から始めてください。
 
-## What Makes Bolt.new Different
+### Bolt.new が特別な理由
 
-Claude, v0, etc are incredible- but you can't install packages, run backends or edit code. That’s where Bolt.new stands out:
+- **ブラウザでフルスタック**: Bolt.new は **StackBlitz の WebContainers** を用いたブラウザ内の開発環境と、最新の AI モデルを統合しています。これにより以下が可能になります。
+  - npm ツールやライブラリ（Vite、Next.js など）のインストールと実行
+  - Node.js サーバの起動
+  - サードパーティ API との連携
+  - チャットからそのまま本番デプロイ
+  - 生成物を URL で共有
 
-- **Full-Stack in the Browser**: Bolt.new integrates cutting-edge AI models with an in-browser development environment powered by **StackBlitz’s WebContainers**. This allows you to:
-  - Install and run npm tools and libraries (like Vite, Next.js, and more)
-  - Run Node.js servers
-  - Interact with third-party APIs
-  - Deploy to production from chat
-  - Share your work via a URL
+- **環境まで制御する AI**: 一般的な生成系支援と異なり、Bolt.new では AI がファイルシステム、Node サーバ、パッケージマネージャ、ターミナル、ブラウザコンソールを含む開発環境全体を操作できます。これにより、アプリの作成からデプロイまでのライフサイクルを AI が一貫して扱えます。
 
-- **AI with Environment Control**: Unlike traditional dev environments where the AI can only assist in code generation, Bolt.new gives AI models **complete control** over the entire  environment including the filesystem, node server, package manager, terminal, and browser console. This empowers AI agents to handle the entire app lifecycle—from creation to deployment.
+経験豊富なエンジニアから PM/デザイナーまで、誰でもプロダクション品質のフルスタックアプリを手軽に構築できます。WebContainers を使った自作の AI 開発ツールに興味がある方は、このリポジトリのオープンソース版 Bolt をご活用ください。
 
-Whether you’re an experienced developer, a PM or designer, Bolt.new allows you to build production-grade full-stack applications with ease.
+### 使いこなしのコツ
 
-For developers interested in building their own AI-powered development tools with WebContainers, check out the open-source Bolt codebase in this repo!
+- **使いたいスタックを明示する**: Astro、Tailwind、ShadCN など、利用したいフレームワーク/ライブラリがある場合は最初のプロンプトで指定してください。Bolt がその前提で最適にスキャフォールドします。
+- **プロンプト強化アイコンを活用**: 送信前に“enhance”アイコンを押すと、AI がプロンプトを洗練してくれます。必要に応じて編集してから送信しましょう。
+- **まず骨組み、次に機能**: 先にアプリの基本構造を整えてから機能を追加すると、配線ミスを防ぎ、より確実に発展できます。
+- **簡単な指示はまとめて**: 色変更、レスポンシブ対応、Dev サーバ再起動などは一度にまとめて依頼すると、操作回数やトークン消費を抑えられます。
 
-## Tips and Tricks
+### FAQ
 
-Here are some tips to get the most out of Bolt.new:
+- **有料プランの申し込みは？**  
+  まずは無料で始められます。より多くの AI トークンやプライベートプロジェクトが必要な場合は、アプリ左下の設定からサブスクリプションを購入できます（`https://bolt.new`）。
 
-- **Be specific about your stack**: If you want to use specific frameworks or libraries (like Astro, Tailwind, ShadCN, or any other popular JavaScript framework), mention them in your initial prompt to ensure Bolt scaffolds the project accordingly.
+- **無料利用上限に達したら？**  
+  その日の無料トークン上限に達すると、翌日まで（またはアップグレードするまで）AI とのやり取りが一時停止されます。
 
-- **Use the enhance prompt icon**: Before sending your prompt, try clicking the 'enhance' icon to have the AI model help you refine your prompt, then edit the results before submitting.
+- **Bolt はベータ版？**  
+  はい、Bolt.new はベータ版です。皆さまのフィードバックを元に継続的に改善しています。
 
-- **Scaffold the basics first, then add features**: Make sure the basic structure of your application is in place before diving into more advanced functionality. This helps Bolt understand the foundation of your project and ensure everything is wired up right before building out more advanced functionality.
+- **不具合報告や要望は？**  
+  [Issues セクション](https://github.com/stackblitz/bolt.new/issues)をご利用ください。既存の報告/要望がないか検索してから投稿をお願いします。
 
-- **Batch simple instructions**: Save time by combining simple instructions into one message. For example, you can ask Bolt to change the color scheme, add mobile responsiveness, and restart the dev server, all in one go saving you time and reducing API credit consumption significantly.
+- **どのフレームワーク/ライブラリに対応？**  
+  StackBlitz 上で動く主要な JavaScript フレームワーク/ライブラリは概ねサポートされます。
 
-## FAQs
-
-**Where do I sign up for a paid plan?**  
-Bolt.new is free to get started. If you need more AI tokens or want private projects, you can purchase a paid subscription in your [Bolt.new](https://bolt.new) settings, in the lower-left hand corner of the application. 
-
-**What happens if I hit the free usage limit?**  
-Once your free daily token limit is reached, AI interactions are paused until the next day or until you upgrade your plan.
-
-**Is Bolt in beta?**  
-Yes, Bolt.new is in beta, and we are actively improving it based on feedback.
-
-**How can I report Bolt.new issues?**  
-Check out the [Issues section](https://github.com/stackblitz/bolt.new/issues) to report an issue or request a new feature. Please use the search feature to check if someone else has already submitted the same issue/request.
-
-**What frameworks/libraries currently work on Bolt?**  
-Bolt.new supports most popular JavaScript frameworks and libraries. If it runs on StackBlitz, it will run on Bolt.new as well.
-
-**How can I add make sure my framework/project works well in bolt?**  
-We are excited to work with the JavaScript ecosystem to improve functionality in Bolt. Reach out to us via [hello@stackblitz.com](mailto:hello@stackblitz.com) to discuss how we can partner!
+- **自分のフレームワークを最適化したい**  
+  エコシステムとの協業を歓迎しています。`hello@stackblitz.com` までご連絡ください。

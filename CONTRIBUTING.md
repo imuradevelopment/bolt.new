@@ -1,111 +1,92 @@
 [![Bolt Open Source Codebase](./public/social_preview_index.jpg)](https://bolt.new)
 
-> Welcome to the **Bolt** open-source codebase! This repo contains a simple example app using the core components from bolt.new to help you get started building **AI-powered software development tools** powered by StackBlitz’s **WebContainer API**.
+> **Bolt** オープンソースコードベースへようこそ！このリポジトリは、bolt.new のコアコンポーネントを用いた最小のサンプルアプリを含み、**StackBlitz の WebContainer API** を活用した **AI 開発ツール** を構築するための出発点を提供します。
 
-### Why Build with Bolt + WebContainer API
+### なぜ Bolt + WebContainer API なのか
 
-By building with the Bolt + WebContainer API you can create browser-based applications that let users **prompt, run, edit, and deploy** full-stack web apps directly in the browser, without the need for virtual machines. With WebContainer API, you can build apps that give AI direct access and full control over a **Node.js server**, **filesystem**, **package manager** and **dev terminal** inside your users browser tab. This powerful combination allows you to create a new class of development tools that support all major JavaScript libraries and Node packages right out of the box, all without remote environments or local installs.
+Bolt と WebContainer API を組み合わせると、**仮想マシン不要**で、ブラウザだけで **プロンプト→実行→編集→デプロイ** まで可能なフルスタック開発アプリを構築できます。WebContainer API を使えば、AI に **Node.js サーバ**、**ファイルシステム**、**パッケージマネージャ**、**開発用ターミナル** への完全なアクセスを与えられます。主要な JavaScript ライブラリや Node パッケージを、リモート環境やローカルインストールなしでそのまま扱える新しい開発体験を実現します。
 
-### What’s the Difference Between Bolt (This Repo) and [Bolt.new](https://bolt.new)?
+### 本リポジトリ（Bolt）と [Bolt.new](https://bolt.new) の違い
 
-- **Bolt.new**: This is the **commercial product** from StackBlitz—a hosted, browser-based AI development tool that enables users to prompt, run, edit, and deploy full-stack web applications directly in the browser. Built on top of the [Bolt open-source repo](https://github.com/stackblitz/bolt.new) and powered by the StackBlitz **WebContainer API**.
+- **Bolt.new**: StackBlitz が提供する商用のクラウド型プロダクト。ブラウザだけでフルスタックアプリをプロンプト/実行/編集/デプロイできます。ベースはこのオープンソース（Bolt）で、**WebContainer API** を活用しています。
+- **Bolt（このリポジトリ）**: Bolt.new を構成する UI およびサーバ部品のコアを公開。フレームワークは [Remix Run](https://remix.run/)。本 OSS と **WebContainer API** を使えば、ブラウザ内で完結する AI 開発ツールやフルスタックアプリを自作できます。
 
-- **Bolt (This Repo)**: This open-source repository provides the core components used to make **Bolt.new**. This repo contains the UI interface for Bolt as well as the server components, built using [Remix Run](https://remix.run/). By leveraging this repo and StackBlitz’s **WebContainer API**, you can create your own AI-powered development tools and full-stack applications that run entirely in the browser.
+## Bolt で開発を始める
 
-# Get Started Building with Bolt
-
-Bolt combines the capabilities of AI with sandboxed development environments to create a collaborative experience where code can be developed by the assistant and the programmer together. Bolt combines [WebContainer API](https://webcontainers.io/api) with **Gemini** using [Remix](https://remix.run/) and the [AI SDK](https://sdk.vercel.ai/).
+Bolt は AI とサンドボックス開発環境を組み合わせ、アシスタントと開発者が協調してコードを作る体験を提供します。バックエンドは [WebContainer API](https://webcontainers.io/api)、AI は **Gemini**、フレームワークは [Remix](https://remix.run/)、AI SDK は [Vercel AI SDK](https://sdk.vercel.ai/) を使用します。
 
 ### WebContainer API
 
-Bolt uses [WebContainers](https://webcontainers.io/) to run generated code in the browser. WebContainers provide Bolt with a full-stack sandbox environment using [WebContainer API](https://webcontainers.io/api). WebContainers run full-stack applications directly in the browser without the cost and security concerns of cloud hosted AI agents. WebContainers are interactive and editable, and enables Bolt's AI to run code and understand any changes from the user.
+[WebContainers](https://webcontainers.io/) はブラウザ内でコードを実行するフルスタックのサンドボックス環境を提供します。クラウド上のエージェントを使わず、ブラウザで直接コードを動かし、ユーザーの編集も即座に反映できます。
 
-The [WebContainer API](https://webcontainers.io) is free for personal and open source usage. If you're building an application for commercial usage, you can learn more about our [WebContainer API commercial usage pricing here](https://stackblitz.com/pricing#webcontainer-api).
+商用利用時のライセンスや料金については、[WebContainer API の料金ページ](https://stackblitz.com/pricing#webcontainer-api)をご確認ください。
 
-### Remix App
+### Remix アプリ
 
-Bolt is built with [Remix](https://remix.run/) and
-deployed using [CloudFlare Pages](https://pages.cloudflare.com/) and
-[CloudFlare Workers](https://workers.cloudflare.com/).
+本アプリは [Remix](https://remix.run/) で構築し、[Cloudflare Pages](https://pages.cloudflare.com/) と [Cloudflare Workers](https://workers.cloudflare.com/) で配信します。
 
-### AI SDK Integration
+### AI SDK 連携
 
-Bolt uses the [AI SDK](https://github.com/vercel/ai) to integrate with AI
-models. This setup uses Google's Gemini family.
-You can get an API key from the `Google AI Studio`.
-Take a look at how [Bolt uses the AI SDK](./app/lib/.server/llm)
+AI 連携には [AI SDK](https://github.com/vercel/ai) を利用し、**Google Gemini** ファミリーを使用します。API キーは `Google AI Studio` から取得してください。コードは [app/lib/.server/llm](./app/lib/.server/llm) を参照。
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
+## 前提条件
 
 - Node.js (v20.15.1)
 - pnpm (v9.4.0)
 
-## Setup
+## セットアップ
 
-1. Clone the repository (if you haven't already):
+1. リポジトリを取得
 
 ```bash
 git clone https://github.com/stackblitz/bolt.new.git
 ```
 
-2. Install dependencies:
+2. 依存関係をインストール
 
 ```bash
 pnpm install
 ```
 
-3. Create a `.env.local` file in the root directory and add your Anthropic API key:
+3. ルートに `.env.local` を作成し、API キー等を設定
 
 ```
 GEMINI_API_KEY=XXX
 GEMINI_MODEL=gemini-2.5-pro
-```
-
-Optionally, you can set the debug level:
-
-```
 VITE_LOG_LEVEL=debug
 ```
 
-**Important**: Never commit your `.env.local` file to version control. It's already included in .gitignore.
+`.env.local` は機微情報のためコミットしないでください（`.gitignore` 済み）。
 
-## Available Scripts
+## 利用可能なスクリプト
 
-- `pnpm run dev`: Starts the development server.
-- `pnpm run build`: Builds the project.
-- `pnpm run start`: Runs the built application locally using Wrangler Pages. This script uses `bindings.sh` to set up necessary bindings so you don't have to duplicate environment variables.
-- `pnpm run preview`: Builds the project and then starts it locally, useful for testing the production build. Note, HTTP streaming currently doesn't work as expected with `wrangler pages dev`.
-- `pnpm test`: Runs the test suite using Vitest.
-- `pnpm run typecheck`: Runs TypeScript type checking.
-- `pnpm run typegen`: Generates TypeScript types using Wrangler.
-- `pnpm run deploy`: Builds the project and deploys it to Cloudflare Pages.
+- `pnpm run dev`: 開発サーバを起動（Remix Vite）
+- `pnpm run build`: プロダクションビルド
+- `pnpm run start`: ビルド済みクライアントを Wrangler Pages でローカル起動（`bindings.sh` でバインディング設定）
+- `pnpm run preview`: ビルド後にローカル起動（HTTP ストリーミングは `wrangler pages dev` で制約あり）
+- `pnpm test`: Vitest によるテスト実行
+- `pnpm run typecheck`: TypeScript の型チェック
+- `pnpm run typegen`: Wrangler 型生成
+- `pnpm run deploy`: Cloudflare Pages へデプロイ
 
-## Development
-
-To start the development server:
+## 開発
 
 ```bash
 pnpm run dev
 ```
 
-This will start the Remix Vite development server.
+Remix Vite の開発サーバが起動します。
 
-## Testing
-
-Run the test suite with:
+## テスト
 
 ```bash
 pnpm test
 ```
 
-## Deployment
-
-To deploy the application to Cloudflare Pages:
+## デプロイ
 
 ```bash
 pnpm run deploy
 ```
 
-Make sure you have the necessary permissions and Wrangler is correctly configured for your Cloudflare account.
+Cloudflare アカウントに対する権限と Wrangler の設定が正しいことを確認してください。
