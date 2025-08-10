@@ -1,3 +1,10 @@
+/**
+ * Preview
+ *
+ * 日本語概要:
+ * - WebContainer が公開したポートのいずれかを iframe で表示するプレビュー領域。
+ * - アドレスバーに baseUrl からの相対パスを入力して Enter で遷移可能。
+ */
 import { useStore } from '@nanostores/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { IconButton } from '~/components/ui/IconButton';

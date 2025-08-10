@@ -1,3 +1,9 @@
+/**
+ * Header
+ *
+ * 日本語概要:
+ * - 画面上部のヘッダー。左にロゴ、中央に現在のチャット説明、右にビュー切替ボタン。
+ */
 import { useStore } from '@nanostores/react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { chatStore } from '~/lib/stores/chat';

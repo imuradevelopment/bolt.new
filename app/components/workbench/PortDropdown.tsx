@@ -1,3 +1,9 @@
+/**
+ * PortDropdown
+ *
+ * 日本語概要:
+ * - 利用可能なプレビュー用ポート一覧を表示し、選択中を切替えるドロップダウン。
+ */
 import { memo, useEffect, useRef } from 'react';
 import { IconButton } from '~/components/ui/IconButton';
 import type { PreviewInfo } from '~/lib/stores/previews';
