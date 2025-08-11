@@ -1,26 +1,20 @@
 <template>
-  <div class="min-h-screen flex flex-col items-center justify-start p-6 gap-4">
-    <h1 class="text-2xl font-bold">MVP Chat</h1>
-    <div class="w-full max-w-3xl border rounded p-4">
-      <div class="space-y-2 mb-3">
-        <div v-for="(m, i) in messages" :key="i" class="text-sm whitespace-pre-wrap">
-          <span class="font-semibold">{{ m.role }}:</span>
-          <span> {{ m.content }}</span>
-        </div>
-      </div>
-      <textarea v-model="input" class="w-full border rounded p-2" rows="3" placeholder="Type a message and press Send"></textarea>
-      <div class="mt-2 flex gap-2">
-        <button :disabled="isStreaming || !input" @click="send()" class="px-3 py-1 border rounded">{{ isStreaming ? 'Streaming...' : 'Send' }}</button>
-      </div>
-      <div v-if="error" class="mt-2 text-red-600 text-sm">{{ error }}</div>
-    </div>
-  </div>
-  
+  <ChatTemplate>
+    <ChatPanel
+      :messages="messages"
+      v-model:input="input"
+      :is-streaming="isStreaming"
+      :error="error"
+      @send="send"
+    />
+  </ChatTemplate>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
+import ChatTemplate from '~/components/templates/ChatTemplate.vue'
+import ChatPanel from '~/components/organisms/ChatPanel.vue'
 
 type Role = 'user' | 'assistant' | 'system'
 interface ChatMessage { role: Role; content: string }

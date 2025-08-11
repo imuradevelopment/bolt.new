@@ -91,6 +91,8 @@ Nuxt 3 の Pinia を用いる場合は `stores/xxxx.ts` にも対応可だが、
 ```
 app/FE/
   components/
+    templates/
+    organisms/
     atoms/
     molecules/
     organisms/
@@ -105,6 +107,11 @@ app/FE/
   middleware/
   types/
 ```
+
+### 本リポジトリでの骨子（例）
+- Template: `components/templates/ChatTemplate.vue`（レイアウト枠）
+- Organism: `components/organisms/ChatPanel.vue`（一覧+入力+ボタン）
+- Page: `pages/index.vue`（データ取得・送信/ストリーミング処理を注入）
 
 ## 環境変数
 `.env`（開発例）
