@@ -55,7 +55,7 @@
 
 `shared/` は「アプリケーション全体に関わる横断的責務」のみ。
 
-例）`logger` / `auth` / `database` / `aws` / `security` / `types` など。`utils.ts` や `helpers/` のような責務不明構成は禁止。共通ロジックは責務名でディレクトリ化する。
+例）`logger` / `auth` / `database` / `security` / `types` など。`utils.ts` や `helpers/` のような責務不明構成は禁止。共通ロジックは責務名でディレクトリ化する。
 
 ---
 
@@ -126,16 +126,24 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 
 ---
 
+## 外部サービスの不使用
+
+- CDN/マネージドDB/メール・SMS配信/オブジェクトストレージ等の外部クラウドサービスには依存しません。
+- 実行・データ保存はローカル/セルフホストで完結させます（開発DBは既定で SQLite）。
+- メール等が必要な場合はローカルMTAやスタブで代替します（外部APIは利用しない）。
+
+---
+
 ## 既存からの移植ポイント
 - `既存アプリのバックアップ/app/routes/api.chat.ts` → `features/endpoint/chat/routes.ts`
 - `既存アプリのバックアップ/app/routes/api.enhancer.ts` → `features/endpoint/enhancer/routes.ts`
 - `既存アプリのバックアップ/app/lib/.server/llm/*` → `features/llm/*`
-- Cloudflare 依存（`context.cloudflare.env`）は `process.env` へ置換
+- バックアップ由来の環境バインディングは `process.env` に統一
 
 ## DB（DBML 駆動 + ORM）
 - 単一ソース: `db/datamase.dbml`
 - 生成: DBML → `db/migrations/*.sql`（例: `@dbml/cli`）
-- 適用: SQLite（開発）/ Postgres（本番）などに適用
+- 適用: SQLite を既定（開発/小規模運用）。他 RDB に移行する場合はセルフホスト前提で接続設定のみ切替。
 - モデル: ORM CLI で `src/models` を生成・同期（直接 import 禁止、`repository` 経由）
 
 ## 環境変数（開発例）
