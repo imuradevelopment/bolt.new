@@ -93,11 +93,7 @@ app/BE/
           service.ts
           schema.ts
           repository.ts
-        enhancer/               # /api/enhancer
-          routes.ts             # 既存 api.enhancer を移植
-          service.ts
-          schema.ts
-          repository.ts
+        
       llm/                      # LLM 呼び出し/プロンプト/ストリーム
         model.ts
         prompts.ts
@@ -126,6 +122,41 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 
 ---
 
+## 実行（開発）
+
+1) 依存インストール
+
+```
+cd app/BE
+pnpm i
+```
+
+2) `.env` を作成（最低限）
+
+```
+PORT=4000
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=あなたのキー
+GEMINI_MODEL=gemini-2.5-pro
+```
+
+3) 開発起動
+
+```
+pnpm dev
+```
+
+4) （任意）DB マイグレーション
+
+```
+pnpm db:generate   # DBML → SQL 生成（初回）
+pnpm db:migrate    # 生成SQLを適用
+```
+
+メモ: ポート競合がある場合は `.env` の `PORT` を変更するか、既存プロセスを終了してください。
+
+---
+
 ## 外部サービスの不使用
 
 - CDN/マネージドDB/メール・SMS配信/オブジェクトストレージ等の外部クラウドサービスには依存しません。
@@ -136,7 +167,6 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 
 ## 既存からの移植ポイント
 - `既存アプリのバックアップ/app/routes/api.chat.ts` → `features/endpoint/chat/routes.ts`
-- `既存アプリのバックアップ/app/routes/api.enhancer.ts` → `features/endpoint/enhancer/routes.ts`
 - `既存アプリのバックアップ/app/lib/.server/llm/*` → `features/llm/*`
 - バックアップ由来の環境バインディングは `process.env` に統一
 

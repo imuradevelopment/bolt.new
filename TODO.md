@@ -16,9 +16,7 @@
 - 既存: 既存アプリのバックアップ/app/routes/api.chat.ts
   - 新規: app/BE/src/features/endpoint/chat/{routes.ts, service.ts, schema.ts, repository.ts}
   - メモ: LLMストリーミング（チャンク）/継続生成（トークン上限時）。Node向けにストリームAPIへ適合。
-- 既存: 既存アプリのバックアップ/app/routes/api.enhancer.ts
-  - 新規: app/BE/src/features/endpoint/enhancer/{routes.ts, service.ts, schema.ts, repository.ts}
-  - メモ: 改善済みプロンプトをプレーンテキストで逐次出力。
+ 
 - 既存: 既存アプリのバックアップ/app/lib/.server/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
   - 新規: app/BE/src/features/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
   - メモ: 実際のLLMを使用（外部API: Gemini）。`.env` の `LLM_PROVIDER=gemini`, `GEMINI_MODEL`, `GEMINI_API_KEY` を利用してストリーミング呼び出し。鍵はコミットしない。
@@ -30,7 +28,7 @@
   - 新規: サーバ保存（DB）へ移行。必要ならFEでローカル履歴を任意で保持（後回し）。
 
 MVPのスコープ（抜粋）
-- 含める: /api/chat, /api/enhancer（チャンクストリーミング）, FEのチャット画面, CORS/エラーハンドリング, DB（users/chats/messagesの最小）
+- 含める: /api/chat（チャンクストリーミング）, FEのチャット画面, CORS/エラーハンドリング, DB（users/chats/messagesの最小）
 - 含めない: Workbench/Terminal/WebContainers、認証・権限、OpenAPI定義の整備（後日）
 
 タスク（チェックリスト）
@@ -44,7 +42,6 @@ MVPのスコープ（抜粋）
    - 失敗時はわかりやすいエラーを返す（鍵未設定/クォータ超過など）
 3) エンドポイント
    - endpoint/chat: POST /api/chat（Body: {messages}）→ テキスト/プレーンでチャンク返却
-   - endpoint/enhancer: POST /api/enhancer（Body: {message}）→ 改善済テキストのチャンク返却
 4) DB
    - db/datamase.dbml を作成（users/chats/messages）
    - マイグレーション生成と適用スクリプト整備
@@ -74,6 +71,6 @@ MVPのスコープ（抜粋）
 
 受け入れ基準（DoD）
 - FEから入力→BEがチャンクで応答→FEでリアルタイム描画が成立
-- /api/chat と /api/enhancer が実LLM応答で動作（Gemini API 経由）
+- /api/chat が実LLM応答で動作（Gemini API 経由）
 - DBMLからマイグレーション生成・適用が成功（SQLite）
 - 外部サービス依存はLLM APIのみに限定（他クラウド機能は不使用）
