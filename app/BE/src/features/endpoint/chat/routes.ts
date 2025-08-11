@@ -22,8 +22,6 @@ export function chatRouter() {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
-      const message = error instanceof Error ? error.message : 'Internal Server Error';
-      res.statusMessage = message;
       res.status(500).end();
     }
   });

@@ -6,7 +6,13 @@
         <span> {{ m.content }}</span>
       </div>
     </div>
-    <textarea v-model="input" class="w-full border rounded p-2" rows="3" placeholder="Type a message and press Send"></textarea>
+    <textarea
+      :value="input"
+      @input="onInput"
+      class="w-full border rounded p-2"
+      rows="3"
+      placeholder="Type a message and press Send"
+    />
     <div class="mt-2 flex gap-2">
       <button :disabled="isStreaming || !input" @click="$emit('send')" class="px-3 py-1 border rounded">{{ isStreaming ? 'Streaming...' : 'Send' }}</button>
     </div>
@@ -19,14 +25,18 @@ import type { Ref } from 'vue'
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 
-defineProps<{
+const props = defineProps<{
   messages: ChatMessage[]
   input: string
   isStreaming: boolean
   error: string
 }>()
 
-defineEmits<{ (e: 'send'): void }>()
+const emit = defineEmits<{ (e: 'send'): void; (e: 'update:input', value: string): void }>()
+
+function onInput(e: Event) {
+  emit('update:input', (e.target as HTMLTextAreaElement).value)
+}
 </script>
 
 
