@@ -1,59 +1,142 @@
 # Bolt BE (Express)
 
-このバックエンドは、既存のRemix/Cloudflare Pages Functions 実装（バックアップ参照）を Node.js/Express に置き換えるためのものです。Nuxt 3（app/FE）から呼び出される API を提供します。
+このバックエンドは、既存実装（バックアップ参照）を Node.js/Express へ移植し、Nuxt 3（app/FE）から利用される API を提供します。
 
-## 目的（バックアップからの移植方針）
-- 既存の `app/routes/api.chat.ts` 相当を Express の `POST /api/chat` に移植（LLMレスポンスのストリーミング対応、トークン上限時の継続生成を含む）
-- 既存の `app/routes/api.enhancer.ts` 相当を Express の `POST /api/enhancer` に移植（プロンプト改善のストリーミング）
-- 既存の `app/lib/.server/llm/*`（`model.ts`, `prompts.ts`, `stream-text.ts`, `switchable-stream.ts` など）を Node ランタイム向けに再配置
-- Cloudflare固有の `context.cloudflare.env` は `process.env` へ置換
+## 設計原則（必須ルール）
 
-## ディレクトリ構成（シンプルなExpress構成）
+先に3行でまとめます。
+1. 「/src/shared/」はアプリケーション横断機能
+2. 「/src/features/」直下はエンドポイント横断機能
+3. 「/src/features/endpoint/[domain]」はエンドポイント固有機能
+
+---
+
+## 構成 = 設計
+
+ファイル名とディレクトリパスだけで中身の責務が即座に分かること。
+
+`utils` / `common` / `core` のような曖昧な構成は一切禁止。処理対象と責務をパス全体で表現し、抽象名に逃がさない。
+
+---
+
+## ドメイン駆動構成（DDD志向 + LLM対応）
+
+各機能は `features/` 以下に集約し、次の構成単位で責務を明示：
+
+- `routes.ts`：ルーティング（唯一の外部エントリポイント）
+- `service.ts`：アプリケーションサービス層（ビジネスルールとユースケース処理）
+- `schema.ts`：Zod による入力バリデーション（`.infer<>` による型一体化）
+- `repository.ts`：DB アクセスの責務分離（`models` 直アクセスは禁止）
+- `worker.ts` / `queue.ts`：非同期/LLM タスク処理（必要に応じて）
+
+永続化層のモデルは `models/` に配置。CLI で自動生成・更新し、直接 import は許可せず `repository` 経由のみ操作する。
+
+複雑なユースケースでは、`service.ts` をディレクトリ化して `create.ts` / `update.ts` などに分割。`repository` も `crud.ts` / `query.ts` / `aggregate.ts` 等に分割し、`index.ts` で再統合する。
+
+`interface` / `adapter` の抽象分離は将来の実装切替が想定される箇所（DB/外部API 等）のみに限定。原則として抽象と実装は同一ファイルに配置し、DI は最小限。
+
+エンドポイント実装はすべて `routes.ts` から開始し、`service → repository` 方向で処理が流れる（逆依存は禁止）。
+
+---
+
+## AI開発支援最適化
+
+機能単位で責務が閉じる構成を徹底し、同一ディレクトリ内で文脈が完結。ファイル名から用途が明示されることで、1-hop で全体を追跡可能。
+
+---
+
+## CRUDの扱い
+
+基本的な CRUD/一覧取得は `service.ts` に集約。責務が増えたら `create.ts` / `detail.ts` / `list.ts` / `update.ts` / `delete.ts` に分離。ドメインロジックを含む場合は `usecase.ts` / `logic.ts` 等に明確化。
+
+---
+
+## shared/ の扱い
+
+`shared/` は「アプリケーション全体に関わる横断的責務」のみ。
+
+例）`logger` / `auth` / `database` / `aws` / `security` / `types` など。`utils.ts` や `helpers/` のような責務不明構成は禁止。共通ロジックは責務名でディレクトリ化する。
+
+---
+
+## 禁止事項
+
+- `utils.ts` による責務のゴミ箱化
+- `shared` にドメイン横断でないものを置くこと
+- LLM を知らずに叩く `worker` 設計（`prompt` も責務分離）
+- `Model` を直接 import して CRUD 実装
+- 構成から責務が読めないルート名（`config.ts`, `home.ts` 等）
+- `schema` と `type` の分離（Zod と infer による一体運用）
+- `interface` / `adapter` の過剰分離（抽象と実装は同一ファイルにまとめる）
+
+---
+
+## Swagger連携
+
+`features/endpoint/` は HTTP ルーティングに対応する専用レイヤー。OpenAPI 仕様（例: `bolt.yaml`）の各パスは `features/endpoint/<path>/routes.ts` に 1:1 対応させる。
+
+全体のマウントは `src/app.ts` で行い、API 仕様は OpenAPI を唯一のソースとして構成を準拠させる。
+
+---
+
+## ディレクトリ構成（本プロジェクト）
+
 ```
 app/BE/
   src/
-    server.ts                 # 起動ブートストラップ（Express listen）
-    app.ts                    # Expressアプリ本体（ミドルウェア/CORS/ルーティング集約）
-    routes/
-      api/
-        chat.ts               # POST /api/chat（LLMストリーミング）
-        enhancer.ts           # POST /api/enhancer（プロンプト改善ストリーミング）
-    llm/
-      model.ts                # Geminiモデル選択（GEMINI_API_KEY/GEMINI_MODEL）
-      prompts.ts              # 既存のプロンプトを移植
-      stream-text.ts          # LLM呼び出しラッパ（既存の実装をNode向けに）
-      switchable-stream.ts    # 既存の継続生成ストリームを移植
+    app.ts                      # Express アプリ初期化（CORS/JSON/Error など）
+    server.ts                   # 起動ブートストラップ（listen）
+    features/
+      endpoint/
+        chat/                   # /api/chat
+          routes.ts             # 既存 api.chat を移植
+          service.ts
+          schema.ts
+          repository.ts
+        enhancer/               # /api/enhancer
+          routes.ts             # 既存 api.enhancer を移植
+          service.ts
+          schema.ts
+          repository.ts
+      llm/                      # LLM 呼び出し/プロンプト/ストリーム
+        model.ts
+        prompts.ts
+        stream-text.ts
+        switchable-stream.ts
+      email/                    # （必要に応じて）通知/招待等
+    models/                     # ORM モデル（CLI 生成、read-only）
+    shared/
+      auth/
+      database/
+      logger/
+      security/
+      types/
     middleware/
-      cors.ts                 # CORS許可（FE: http://localhost:3000）
-      error.ts                # エラーハンドリング
-      json.ts                 # JSONパース/制限
-    config/
-      env.ts                  # 環境変数の読み込み/検証
-    utils/
-      sse.ts                  # 必要ならSSE/チャンク送出の補助
-
-  package.json                # （後で作成）scripts: dev/build/start など
+      cors.ts
+      error.ts
+      json.ts
+    router.ts                   # ルート統合（features/endpoint/* を集約）
 
 db/
-  datamase.dbml               # DBの単一ソース（ユーザー指定名）
-  migrations/                 # DBML→SQL生成物
+  datamase.dbml                 # DB スキーマの唯一のソース
+  migrations/                   # DBML → SQL 生成物
+
+bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ```
 
-Rinstack 固有の `features/` や `shared/` といった階層は採用しません。ここでは「既存アプリの責務」に合わせた最小の Express 構成とします。
+---
 
-## API（移植対象）
-- POST `/api/chat`
-  - Body: `{ messages: Array<{ role: 'user' | 'assistant', content: string }> }`
-  - Res: テキストのストリーミング（チャンク/SSEのいずれか）。既存の `SwitchableStream` ロジックでトークン上限到達時に自動継続
+## 既存からの移植ポイント
+- `既存アプリのバックアップ/app/routes/api.chat.ts` → `features/endpoint/chat/routes.ts`
+- `既存アプリのバックアップ/app/routes/api.enhancer.ts` → `features/endpoint/enhancer/routes.ts`
+- `既存アプリのバックアップ/app/lib/.server/llm/*` → `features/llm/*`
+- Cloudflare 依存（`context.cloudflare.env`）は `process.env` へ置換
 
-- POST `/api/enhancer`
-  - Body: `{ message: string }`
-  - Res: 改善済みプロンプトのストリーミング（最終的にはプレーンテキスト）
-
-既存実装の参照箇所:
-- `既存アプリのバックアップ/app/routes/api.chat.ts`
-- `既存アプリのバックアップ/app/routes/api.enhancer.ts`
-- `既存アプリのバックアップ/app/lib/.server/llm/*`
+## DB（DBML 駆動 + ORM）
+- 単一ソース: `db/datamase.dbml`
+- 生成: DBML → `db/migrations/*.sql`（例: `@dbml/cli`）
+- 適用: SQLite（開発）/ Postgres（本番）などに適用
+- モデル: ORM CLI で `src/models` を生成・同期（直接 import 禁止、`repository` 経由）
 
 ## 環境変数（開発例）
 ```
@@ -63,22 +146,11 @@ GEMINI_MODEL=gemini-2.5-pro
 ```
 
 ## CORS
-- FEはデフォルトで `http://localhost:3000` を想定。`middleware/cors.ts` で許可
-
-## DB（DBML駆動）
-- 単一ソース: `db/datamase.dbml`
-- 生成: DBML → `db/migrations/*.sql`（例: `@dbml/cli`）
-- 適用: SQLite（開発） or Postgres（本番）に対して Node スクリプト（`pnpm db:migrate`）で適用
-
-## 開発フロー（想定）
-1) 既存の LLM ロジックを `src/llm/*` に移植（型/ストリームAPIをNode向けに調整）
-2) ルートを `src/routes/api/*` に実装し、`app.ts` にマウント
-3) CORS/エラー処理/JSON制限を `middleware/*` で適用
-4) DBML → マイグレーション生成 → 開発DBへ適用
+- FE は `http://localhost:3000` を想定。`shared` or `middleware` で許可。
 
 ## スクリプト（予定）
-- `pnpm dev`: ts-node/tsx で開発起動（PORT=4000）
+- `pnpm dev`: ts-node/tsx で開発起動
 - `pnpm build`: tsc ビルド
 - `pnpm start`: ビルド成果物を実行
-- `pnpm db:generate`: `db/datamase.dbml` から `db/migrations` 生成
-- `pnpm db:migrate`: ローカルDBへマイグレーション適用
+- `pnpm db:generate`: DBML → migrations 生成
+- `pnpm db:migrate`: DB へ適用
