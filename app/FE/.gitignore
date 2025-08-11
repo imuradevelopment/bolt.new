@@ -1,0 +1,12 @@
+.env
+.env.*
+node_modules/
+.nuxt/
+.output/
+dist/
+build/
+*.log
+.DS_Store
+coverage/
+.cache/
+
