@@ -21,7 +21,7 @@
   - メモ: 改善済みプロンプトをプレーンテキストで逐次出力。
 - 既存: 既存アプリのバックアップ/app/lib/.server/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
   - 新規: app/BE/src/features/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
-  - メモ: 外部API禁止のため当面はローカルスタブ/モックを実装（エコー/簡易リライト/分割送出など）。将来ローカルLLMへ差し替え可能なIF設計にする。
+  - メモ: 実際のLLMを使用（ローカル推論）。例: ローカルLLMランタイム（Ollama等）へのHTTP接続でストリーミング取得。外部クラウドAPIは使わない。
 - 既存: 既存アプリのバックアップ/app/entry.server.tsx などSSR系
   - 新規: FE側はNuxt SSRで代替（既存のSSRコードは移植対象外）。
 - 既存: WebContainers/Workbench/Editor/Terminal 等 UI（components/workbench/*, components/editor/* 他）
@@ -37,10 +37,11 @@ MVPのスコープ（抜粋）
 1) BEスキャフォールド
    - app/BE/src/{server.ts, app.ts, router.ts}
    - middleware: cors.ts, error.ts, json.ts（制限値含む）
-2) LLMスタブ
+2) LLM接続（ローカル）
    - features/llm/{prompts.ts, switchable-stream.ts}を移植
-   - stream-text.ts: 文字列をチャンクに分割して送出（継続生成回数は定数管理）
-   - model.ts: env参照は残しつつ既定はローカルスタブに切替
+   - stream-text.ts: ローカルLLMのHTTP API（例: http://localhost:11434）を呼び出し、ストリーミングをチャンクで転送
+   - model.ts: 使用モデル名・生成設定をenv化（例: LOCAL_LLM_MODEL、LOCAL_LLM_BASE_URL）。外部クラウドAPIは使用しない
+   - 未起動時は分かりやすいエラーメッセージを返す（起動手順を提示）
 3) エンドポイント
    - endpoint/chat: POST /api/chat（Body: {messages}）→ テキスト/プレーンでチャンク返却
    - endpoint/enhancer: POST /api/enhancer（Body: {message}）→ 改善済テキストのチャンク返却
@@ -60,11 +61,12 @@ MVPのスコープ（抜粋）
 - エラー返却: 500時は本文なしで statusText のみ。FEはグローバルアラートで通知。
 
 リスク/懸念
-- LLMスタブの品質（将来の差し替え前提）。
-- DBスキーマ確定前のAPI確定の順番。
-- ストリームのブラウザ互換性（Nuxt側のReadableStream処理）。
+- ローカルLLMのセットアップ・起動（モデルサイズ・マシン要件）
+- DBスキーマ確定前のAPI確定の順番
+- ストリームのブラウザ互換性（Nuxt側のReadableStream処理）
 
 次のチャットで決めたいこと
+- 採用するローカルLLMランタイム/モデル（例: Ollama + モデル名）
 - ストリーミング実装: チャンク or SSE（現状はチャンク想定のままで良いか）
 - DBスキーマの確定（users/chats/messages の属性詳細）
 - Nuxtの状態管理（Pinia採用有無）
@@ -72,6 +74,6 @@ MVPのスコープ（抜粋）
 
 受け入れ基準（DoD）
 - FEから入力→BEがチャンクで応答→FEでリアルタイム描画が成立
-- /api/chat と /api/enhancer が期待どおりに動作
+- /api/chat と /api/enhancer が実LLM応答で動作（ローカルLLM経由）
 - DBMLからマイグレーション生成・適用が成功（SQLite）
-- 外部サービスに依存していない
+- 外部クラウドサービスに依存していない
