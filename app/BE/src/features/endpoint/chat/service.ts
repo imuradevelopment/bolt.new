@@ -4,13 +4,11 @@ import SwitchableStream from '../../llm/switchable-stream';
 import { CONTINUE_PROMPT } from '../../llm/prompts';
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '../../llm/constants';
 import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainText';
-import { createChatIfNotExists, insertMessage, ensureSchema } from './repository';
+import { createChatIfNotExists, insertMessage } from './repository';
 
 export async function chatService(body: ChatBody, chatId?: number | null) {
   const { messages } = body;
 
-  // マイグレーション未適用環境でも動くよう暫定作成
-  ensureSchema();
   const effectiveChatId = createChatIfNotExists(chatId);
   // 直近のユーザー入力を保存（最後の message を想定）
   const lastUser = messages[messages.length - 1];
