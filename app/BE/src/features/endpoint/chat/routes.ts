@@ -13,11 +13,17 @@ export function chatRouter() {
         return res.status(400).json({ error: 'Invalid body' });
       }
 
-      const readable = await chatService(parse.data);
+      const chatIdParam = req.header('x-chat-id');
+      const chatId = chatIdParam ? Number(chatIdParam) : undefined;
+
+      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId);
+      res.setHeader('X-Chat-Id', String(effectiveChatId));
       sendPlainStream(res, readable);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      const message = error instanceof Error ? error.message : 'Internal Server Error';
+      res.statusMessage = message;
       res.status(500).end();
     }
   });

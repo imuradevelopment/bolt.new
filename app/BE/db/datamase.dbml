@@ -1,6 +1,4 @@
-Project datamase {
-  database_type: "SQLite"
-}
+Project datamase {}
 
 Table users {
   id integer [pk, increment]
@@ -18,12 +16,11 @@ Table chats {
 Table messages {
   id integer [pk, increment]
   chat_id integer [ref: > chats.id]
-  role text // 'user' | 'assistant'
+  role text
   content text
   created_at datetime [default: `CURRENT_TIMESTAMP`]
 }
 
-Ref: chats.user_id > users.id
-Ref: messages.chat_id > chats.id
+// Foreign keys are defined inline above.
 
 

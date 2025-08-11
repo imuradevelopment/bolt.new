@@ -137,6 +137,7 @@ NITRO_PORT=3001 pnpm dev
 ```
 
 - バックエンドのベースURLは環境変数から参照します。
+ - バックエンドのベースURLは環境変数から参照します。
 
 ```
 # .env の例
@@ -145,3 +146,7 @@ API_BASE_URL=http://localhost:4000
 ```
 
 - 起動後はトップページで入力→Send を押すと `/api/chat` に POST され、text/plain のチャンクがストリーミングで描画されます。
+
+トラブルシュート
+- ポート競合で 3000 が使えない場合は `NITRO_PORT` を変えて起動（例: `NITRO_PORT=3001 pnpm dev`）
+- CORS エラーが出る場合は、BE 側の `CORS_ORIGIN` に FE の実ポートを設定

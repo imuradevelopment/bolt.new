@@ -20,14 +20,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useGlobalAlert } from '~/composables/useGlobalAlert'
 
 type Role = 'user' | 'assistant' | 'system'
 interface ChatMessage { role: Role; content: string }
 
 const messages = ref<ChatMessage[]>([])
+const chatId = ref<string | null>(null)
 const input = ref('')
 const isStreaming = ref(false)
 const error = ref('')
+const { show } = useGlobalAlert()
 
 const config = useRuntimeConfig()
 const apiBaseUrl: string = config.public.apiBaseUrl
@@ -44,14 +47,13 @@ async function send() {
   try {
     const res = await fetch(`${apiBaseUrl}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(chatId.value ? { 'x-chat-id': chatId.value } : {}) },
       body: JSON.stringify(body),
     })
 
-    if (!res.ok) {
-      throw new Error(res.statusText || 'Request failed')
-    }
+    if (!res.ok) throw new Error(res.statusText || 'Request failed')
 
+    chatId.value = res.headers.get('x-chat-id') || chatId.value
     const reader = res.body?.getReader()
     const decoder = new TextDecoder()
     let acc = ''
@@ -71,6 +73,7 @@ async function send() {
     }
   } catch (e: any) {
     error.value = e?.message || 'Unknown error'
+    show(error.value)
   } finally {
     isStreaming.value = false
   }

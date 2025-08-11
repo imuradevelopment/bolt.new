@@ -138,6 +138,8 @@ PORT=4000
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=あなたのキー
 GEMINI_MODEL=gemini-2.5-pro
+# FE のポートに合わせる（デフォルトは3000）
+CORS_ORIGIN=http://localhost:3000
 ```
 
 3) 開発起動
@@ -146,14 +148,25 @@ GEMINI_MODEL=gemini-2.5-pro
 pnpm dev
 ```
 
-4) （任意）DB マイグレーション
+4) DB マイグレーション（推奨）
 
 ```
 pnpm db:generate   # DBML → SQL 生成（初回）
-pnpm db:migrate    # 生成SQLを適用
+pnpm db:migrate    # 生成SQLを適用（SQLite, better-sqlite3）
 ```
 
-メモ: ポート競合がある場合は `.env` の `PORT` を変更するか、既存プロセスを終了してください。
+補足（ネイティブ依存のビルド）
+- 初回は `better-sqlite3` のネイティブビルド承認が必要な場合があります。
+  - `pnpm approve-builds` を実行し、`better-sqlite3` を選択して承認
+  - 必要に応じて `pnpm rebuild better-sqlite3`
+
+補足（暫定テーブル作成）
+- 開発の利便性のため、未適用でも起動時にテーブルを作成する暫定処理（`ensureSchema()`）を `/features/endpoint/chat/service.ts` で呼び出しています。マイグレーション前提に切り替える場合はこの呼び出しを削除してください。
+
+トラブルシュート
+- ポート競合（EADDRINUSE: :4000）: 既存プロセスを停止するか `PORT` を変更
+  - 例: `lsof -ti:4000 | xargs -r kill -9` / `fuser -k 4000/tcp`
+- CORSエラー: `CORS_ORIGIN` を FE の実ポートに合わせる
 
 ---
 

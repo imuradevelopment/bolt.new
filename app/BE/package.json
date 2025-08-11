@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "db:generate": "dbml2sql --sqlite -i db/datamase.dbml -o db/migrations/000_init.sql",
+    "db:generate": "tsx scripts/dbml-generate.ts",
     "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
