@@ -6,7 +6,8 @@ export function cors() {
     origin,
     credentials: false,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Accept', 'X-Chat-Id'],
+    exposedHeaders: ['X-Chat-Id'],
   });
 }
 

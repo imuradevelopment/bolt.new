@@ -18,7 +18,7 @@ export function chatRouter() {
 
       const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId);
       res.setHeader('X-Chat-Id', String(effectiveChatId));
-      sendPlainStream(res, readable);
+      sendPlainStream(req, res, readable);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);

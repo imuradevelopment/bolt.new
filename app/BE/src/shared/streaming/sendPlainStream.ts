@@ -1,6 +1,6 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
-export function sendPlainStream(res: Response, stream: ReadableStream<Uint8Array>) {
+export function sendPlainStream(req: Request, res: Response, stream: ReadableStream<Uint8Array>) {
   res.status(200);
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   // Flush headers early to ensure chunked transfer starts
@@ -11,11 +11,19 @@ export function sendPlainStream(res: Response, stream: ReadableStream<Uint8Array
   }
 
   const reader = stream.getReader();
+  const onClose = () => {
+    reader.cancel().catch(() => {});
+  };
+
+  res.on('close', onClose);
+  res.on('error', onClose);
 
   const write = async () => {
     const { done, value } = await reader.read();
     if (done) {
       res.end();
+      res.off('close', onClose);
+      res.off('error', onClose);
       return;
     }
     if (value) {

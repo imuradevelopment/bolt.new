@@ -1,5 +1,4 @@
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
+import { getDb } from '../../../shared/database/sqlite';
 
 export interface ChatRecord {
   id: number;
@@ -16,27 +15,15 @@ export interface MessageRecord {
   created_at: string;
 }
 
-function dbPath(): string {
-  return path.resolve(process.cwd(), 'db', path.basename(process.env.SQLITE_PATH || 'data.sqlite3'));
-}
-
-function runSql(sql: string): string {
-  const out = execFileSync('sqlite3', [dbPath(), sql], { encoding: 'utf8' });
-  return out.trim();
-}
-
-function escape(value: string): string {
-  return value.replace(/'/g, "''");
-}
+const db = getDb();
 
 export function createChatIfNotExists(chatId?: number | null): number {
   if (chatId) {
-    const exists = runSql(`SELECT 1 FROM chats WHERE id = ${Number(chatId)} LIMIT 1;`);
-    if (exists === '1') return Number(chatId);
+    const hit = db.prepare('SELECT 1 FROM chats WHERE id = ?').get(chatId);
+    if (hit) return Number(chatId);
   }
-  runSql(`INSERT INTO chats (title) VALUES (NULL);`);
-  const id = runSql('SELECT last_insert_rowid();');
-  return Number(id || 0);
+  const info = db.prepare('INSERT INTO chats (user_id, title) VALUES (?, ?)').run(null, null);
+  return Number(info.lastInsertRowid);
 }
 
 export function insertMessage(
@@ -44,11 +31,8 @@ export function insertMessage(
   role: 'user' | 'assistant' | 'system',
   content: string,
 ): number {
-  runSql(
-    `INSERT INTO messages (chat_id, role, content) VALUES (${Number(chatId)}, '${escape(role)}', '${escape(content)}');`,
-  );
-  const id = runSql('SELECT last_insert_rowid();');
-  return Number(id || 0);
+  const info = db.prepare('INSERT INTO messages (chat_id, role, content) VALUES (?, ?, ?)').run(chatId, role, content);
+  return Number(info.lastInsertRowid);
 }
 
 
