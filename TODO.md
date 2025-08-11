@@ -21,7 +21,7 @@
   - メモ: 改善済みプロンプトをプレーンテキストで逐次出力。
 - 既存: 既存アプリのバックアップ/app/lib/.server/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
   - 新規: app/BE/src/features/llm/{model.ts, prompts.ts, stream-text.ts, switchable-stream.ts}
-  - メモ: 実際のLLMを使用（ローカル推論）。例: ローカルLLMランタイム（Ollama等）へのHTTP接続でストリーミング取得。外部クラウドAPIは使わない。
+  - メモ: 実際のLLMを使用（外部API: Gemini）。`.env` の `LLM_PROVIDER=gemini`, `GEMINI_MODEL`, `GEMINI_API_KEY` を利用してストリーミング呼び出し。鍵はコミットしない。
 - 既存: 既存アプリのバックアップ/app/entry.server.tsx などSSR系
   - 新規: FE側はNuxt SSRで代替（既存のSSRコードは移植対象外）。
 - 既存: WebContainers/Workbench/Editor/Terminal 等 UI（components/workbench/*, components/editor/* 他）
@@ -37,11 +37,11 @@ MVPのスコープ（抜粋）
 1) BEスキャフォールド
    - app/BE/src/{server.ts, app.ts, router.ts}
    - middleware: cors.ts, error.ts, json.ts（制限値含む）
-2) LLM接続（ローカル）
+2) LLM接続（外部: Gemini）
    - features/llm/{prompts.ts, switchable-stream.ts}を移植
-   - stream-text.ts: ローカルLLMのHTTP API（例: http://localhost:11434）を呼び出し、ストリーミングをチャンクで転送
-   - model.ts: 使用モデル名・生成設定をenv化（例: LOCAL_LLM_MODEL、LOCAL_LLM_BASE_URL）。外部クラウドAPIは使用しない
-   - 未起動時は分かりやすいエラーメッセージを返す（起動手順を提示）
+   - stream-text.ts: Gemini API をストリーミングで呼び出し、そのままチャンク転送
+   - model.ts: `LLM_PROVIDER=gemini`, `GEMINI_MODEL`, `GEMINI_API_KEY` を参照
+   - 失敗時はわかりやすいエラーを返す（鍵未設定/クォータ超過など）
 3) エンドポイント
    - endpoint/chat: POST /api/chat（Body: {messages}）→ テキスト/プレーンでチャンク返却
    - endpoint/enhancer: POST /api/enhancer（Body: {message}）→ 改善済テキストのチャンク返却
@@ -61,12 +61,12 @@ MVPのスコープ（抜粋）
 - エラー返却: 500時は本文なしで statusText のみ。FEはグローバルアラートで通知。
 
 リスク/懸念
-- ローカルLLMのセットアップ・起動（モデルサイズ・マシン要件）
+- LLM外部APIのレイテンシ/クォータ/コスト
 - DBスキーマ確定前のAPI確定の順番
 - ストリームのブラウザ互換性（Nuxt側のReadableStream処理）
 
 次のチャットで決めたいこと
-- 採用するローカルLLMランタイム/モデル（例: Ollama + モデル名）
+- モデル/設定の確定（`GEMINI_MODEL` 候補、温度/最大トークン等）
 - ストリーミング実装: チャンク or SSE（現状はチャンク想定のままで良いか）
 - DBスキーマの確定（users/chats/messages の属性詳細）
 - Nuxtの状態管理（Pinia採用有無）
@@ -74,6 +74,6 @@ MVPのスコープ（抜粋）
 
 受け入れ基準（DoD）
 - FEから入力→BEがチャンクで応答→FEでリアルタイム描画が成立
-- /api/chat と /api/enhancer が実LLM応答で動作（ローカルLLM経由）
+- /api/chat と /api/enhancer が実LLM応答で動作（Gemini API 経由）
 - DBMLからマイグレーション生成・適用が成功（SQLite）
-- 外部クラウドサービスに依存していない
+- 外部サービス依存はLLM APIのみに限定（他クラウド機能は不使用）

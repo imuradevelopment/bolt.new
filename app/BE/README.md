@@ -149,6 +149,7 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ## 環境変数（開発例）
 ```
 PORT=4000
+LLM_PROVIDER=gemini
 GEMINI_API_KEY=...
 GEMINI_MODEL=gemini-2.5-pro
 ```
