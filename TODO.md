@@ -7,6 +7,11 @@
 - BE: Node/Express、FE: Nuxt 3。DBはDBML駆動（既定SQLite）。
 - ブランチ: feature/nuxt-express-mvp。
 
+必読（作業前に必ず確認）
+- app/BE/README.md（設計原則・レイヤリング・移植方針）
+- app/FE/README.md（フロントのコーディング規約/構成方針）
+- 既存アプリのバックアップ/README.md（参照用：移植元の概要）
+
 移植マップ（既存→新規）
 - 既存: 既存アプリのバックアップ/app/routes/api.chat.ts
   - 新規: app/BE/src/features/endpoint/chat/{routes.ts, service.ts, schema.ts, repository.ts}
