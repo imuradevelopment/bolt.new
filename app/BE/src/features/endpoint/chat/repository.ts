@@ -16,13 +16,16 @@ export interface MessageRecord {
   created_at: string;
 }
 
-export async function createChatIfNotExists(chatId?: number | null): Promise<number> {
+export async function createChatIfNotExists(userId?: number | null, chatId?: number | null): Promise<number> {
   const pool = getPgPool();
   if (chatId) {
-    const { rows } = await pool.query('SELECT 1 AS ok FROM chats WHERE id = $1 LIMIT 1', [Number(chatId)]);
+    const { rows } = await pool.query('SELECT id FROM chats WHERE id = $1 AND (user_id IS NULL OR user_id = $2) LIMIT 1', [
+      Number(chatId),
+      userId ?? null,
+    ]);
     if (rows.length > 0) return Number(chatId);
   }
-  const { rows } = await pool.query('INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING id', [null, null]);
+  const { rows } = await pool.query('INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING id', [userId ?? null, null]);
   return Number(rows[0]?.id || 0);
 }
 

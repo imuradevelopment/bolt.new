@@ -3,6 +3,7 @@ import { json } from './middleware/json';
 import { cors } from './middleware/cors';
 import { errorHandler } from './middleware/error';
 import { buildRouter } from './router';
+import { basicAuth } from './shared/auth/basic';
 
 export function createApp(): Application {
   const app = express();
@@ -10,6 +11,7 @@ export function createApp(): Application {
   // middleware
   app.use(cors());
   app.use(json());
+  app.use(basicAuth());
 
   // routes
   app.use('/api', buildRouter());

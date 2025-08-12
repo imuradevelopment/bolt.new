@@ -15,8 +15,9 @@ export function chatRouter() {
 
       const chatIdParam = req.header('x-chat-id');
       const chatId = chatIdParam ? Number(chatIdParam) : undefined;
+      const userId: number | undefined = (res.locals as any)?.userId;
 
-      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId);
+      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId, userId);
       res.setHeader('X-Chat-Id', String(effectiveChatId));
       sendPlainStream(req, res, readable);
     } catch (error) {

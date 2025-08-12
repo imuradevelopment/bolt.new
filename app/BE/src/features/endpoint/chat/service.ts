@@ -6,10 +6,10 @@ import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '../../llm/constants';
 import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainText';
 import { createChatIfNotExists, insertMessage } from './repository';
 
-export async function chatService(body: ChatBody, chatId?: number | null) {
+export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null) {
   const { messages } = body;
 
-  const effectiveChatId = await createChatIfNotExists(chatId);
+  const effectiveChatId = await createChatIfNotExists(userId ?? null, chatId);
   // 直近のユーザー入力を保存（最後の message を想定）
   const lastUser = messages[messages.length - 1];
   if (lastUser?.role === 'user') {
