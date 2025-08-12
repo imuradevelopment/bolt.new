@@ -19,6 +19,15 @@ export interface MessageRecord {
 
 export async function createChatIfNotExists(userId?: number | null, chatId?: number | null): Promise<number> {
   const pool = getPgPool();
+  // Validate userId if provided
+  if (userId != null) {
+    const u = await pool.query('SELECT 1 FROM users WHERE id = $1', [userId]);
+    if (u.rowCount === 0) {
+      const err = new Error('USER_NOT_FOUND');
+      (err as any).code = 'USER_NOT_FOUND';
+      throw err;
+    }
+  }
   if (chatId) {
     const { rows } = await pool.query('SELECT id FROM chats WHERE id = $1 AND (user_id IS NULL OR user_id = $2) LIMIT 1', [
       Number(chatId),

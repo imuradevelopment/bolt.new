@@ -177,11 +177,12 @@ GEMINI_API_KEY=...
 GEMINI_MODEL=models/gemini-2.5-pro
 
 # 生成パラメータ（必須・フォールバック無し）
-LLM_MAX_TOKENS=2048
-LLM_MAX_RESPONSE_SEGMENTS=3
-LLM_TEMPERATURE=0.3
-# （任意）
-# LLM_TOP_P=0.9
+# Google AI Studio の Gemini 2.5 Pro デフォルトに合わせる例
+LLM_MAX_TOKENS=65536
+LLM_MAX_RESPONSE_SEGMENTS=0   # 継続呼び出しを抑止（1以上で“続きを生成”を許可）
+LLM_TEMPERATURE=1
+# （任意）Studio既定に近づける例
+LLM_TOP_P=0.95
 # LLM_TOP_K=40
 ```
 

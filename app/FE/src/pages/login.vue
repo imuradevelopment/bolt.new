@@ -40,13 +40,15 @@ async function login() {
   error.value = ''
   submitting.value = true
   try {
-    // まずは登録（既にあれば409になる）
+    // まずはログインを試行
+    let data: { token: string } | null = null
     try {
+      data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+    } catch (e: any) {
+      // 未登録 or 認証失敗 → 登録を試してから再ログイン
       await post(`/api/auth/register`, { name: u.value, password: p.value })
-    } catch (_) {
-      // ignore (409 expected)
+      data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
     }
-    const data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
     if (!data?.token) throw new Error('認証に失敗しました')
     setToken(data.token, u.value)
     await router.push('/chat')

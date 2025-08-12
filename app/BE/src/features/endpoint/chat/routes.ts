@@ -23,6 +23,9 @@ export function chatRouter() {
       res.setHeader('X-Chat-Id', String(effectiveChatId));
       sendPlainStream(req, res, readable);
     } catch (error) {
+      if ((error as any)?.code === 'USER_NOT_FOUND') {
+        return res.status(401).json({ error: 'Invalid user (please login again)' });
+      }
       // eslint-disable-next-line no-console
       console.error(error);
       res.status(500).end();

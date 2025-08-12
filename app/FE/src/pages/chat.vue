@@ -97,15 +97,18 @@ async function send() {
   }
 }
 
-// クエリの id でチャットを開く
+// クエリの id でチャットを開く（SSRとCSRの不一致を避けるため、初回はonMountedで実行）
 const route = useRoute()
+onMounted(() => {
+  const id = route.query.id
+  if (id) openChat(Number(id))
+})
 watch(
   () => route.query.id,
-  (id) => {
-    if (!id) return
+  (id, oldId) => {
+    if (!id || id === oldId) return
     openChat(Number(id))
-  },
-  { immediate: true }
+  }
 )
 
 async function refreshChats() {

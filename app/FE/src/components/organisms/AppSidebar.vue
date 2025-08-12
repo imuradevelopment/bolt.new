@@ -1,10 +1,10 @@
 <template>
   <nav class="sidebar">
     <div class="row">
-      <button class="btn primary w-full" @click="newChat">+ New Chat</button>
+      <button class="btn primary w-full" @click="newChat" :disabled="!isLoggedIn">+ New Chat</button>
     </div>
     <div class="row">
-      <input v-model="query" placeholder="Search..." class="input w-full" />
+      <input v-model="query" placeholder="Search..." class="input w-full" :disabled="!isLoggedIn" />
     </div>
     <ul class="list">
       <li v-for="c in filtered" :key="c.id" :class="['item', { active: activeId === String(c.id) }]">
@@ -16,19 +16,22 @@
       </li>
     </ul>
     <div class="row small">
-      <button class="btn w-full" @click="load">Refresh</button>
+      <button class="btn w-full" @click="load" :disabled="!isLoggedIn">Refresh</button>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi } from '~/composables/useApi'
+import { useJwtAuth } from '~/composables/useJwtAuth'
 
 interface ChatItem { id: number; title: string | null }
 
 const { get, patch, del } = useApi()
+const { token } = useJwtAuth()
+const isLoggedIn = computed(() => Boolean(token.value))
 const chats = ref<ChatItem[]>([])
 const query = ref('')
 const route = useRoute()
@@ -41,6 +44,7 @@ const filtered = computed(() => {
 })
 
 async function load() {
+  if (!isLoggedIn.value) return
   try {
     const data = await get<{ chats: ChatItem[] }>(`/api/chat/chats`)
     chats.value = data.chats
@@ -73,14 +77,30 @@ async function removeChat(id: number) {
   } catch {}
 }
 
-onMounted(load)
+const handler = () => load()
 
-// 初回応答完了時にタイトルが確定 → リストを更新
-if (process.client) {
-  const handler = () => load()
-  window.addEventListener('chat-title-updated', handler)
-  onUnmounted(() => window.removeEventListener('chat-title-updated', handler))
-}
+onMounted(() => {
+  if (isLoggedIn.value) load()
+  if (process.client && isLoggedIn.value) {
+    window.addEventListener('chat-title-updated', handler)
+  }
+})
+
+watch(isLoggedIn, (v, ov) => {
+  if (process.client) {
+    if (v) {
+      load()
+      window.addEventListener('chat-title-updated', handler)
+    } else {
+      window.removeEventListener('chat-title-updated', handler)
+      chats.value = []
+    }
+  }
+})
+
+onUnmounted(() => {
+  if (process.client) window.removeEventListener('chat-title-updated', handler)
+})
 </script>
 
 <style scoped>

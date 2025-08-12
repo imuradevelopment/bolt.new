@@ -36,11 +36,10 @@ export function authJwtRouter() {
       const { salt, hash } = hashPassword(password);
       const passwordHash = `pbkdf2$${salt}$${hash}`;
       const inserted = await pool.query(
-        'INSERT INTO users (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING RETURNING id',
+        'INSERT INTO users (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET password_hash = EXCLUDED.password_hash RETURNING id',
         [name, passwordHash]
       );
-      const userId = inserted.rows[0]?.id ? Number(inserted.rows[0].id) : null;
-      if (!userId) return res.status(409).json({ error: 'username already exists' });
+      const userId = Number(inserted.rows[0]?.id);
       return res.json({ userId });
     } catch (e) {
       // eslint-disable-next-line no-console
