@@ -2,7 +2,9 @@ import type { NextFunction, Request, Response } from 'express';
 import crypto from 'node:crypto';
 
 export function getJwtSecret(): string {
-  return process.env.JWT_SECRET || 'dev-secret-change-me';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('Missing required env: JWT_SECRET');
+  return secret;
 }
 
 export function createJwt(payload: Record<string, unknown>): string {

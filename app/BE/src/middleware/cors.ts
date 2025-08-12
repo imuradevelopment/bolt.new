@@ -1,7 +1,8 @@
 import corsLib from 'cors';
 
 export function cors() {
-  const origin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const origin = process.env.CORS_ORIGIN;
+  if (!origin) throw new Error('Missing required env: CORS_ORIGIN');
   return corsLib({
     origin,
     credentials: false,

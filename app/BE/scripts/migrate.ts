@@ -17,8 +17,8 @@ async function main() {
     .filter((f) => f.endsWith('.sql'))
     .sort();
 
-  const connectionString = process.env.POSTGRES_URL || '';
-  if (!connectionString) throw new Error('POSTGRES_URL is not set');
+  const connectionString = process.env.POSTGRES_URL;
+  if (!connectionString) throw new Error('Missing required env: POSTGRES_URL');
   const pool = new Pool({ connectionString });
   const client = await pool.connect();
   try {

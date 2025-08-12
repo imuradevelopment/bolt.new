@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import { createApp } from './app';
 
-const PORT = Number(process.env.PORT || 4000);
+const portRaw = process.env.PORT;
+if (!portRaw) throw new Error('Missing required env: PORT');
+const PORT = Number(portRaw);
+if (Number.isNaN(PORT)) throw new Error(`Env PORT must be a number. Got: ${portRaw}`);
 
 const app = createApp();
 
