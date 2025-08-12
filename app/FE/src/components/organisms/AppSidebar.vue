@@ -48,6 +48,7 @@ async function load() {
   try {
     const data = await get<{ chats: ChatItem[] }>(`/api/chat/chats`)
     chats.value = data.chats
+    // 現在の URL の id が一覧にあれば、スクロールや強調を維持（簡易）
   } catch {}
 }
 
@@ -56,7 +57,8 @@ function open(id: number) {
 }
 
 function newChat() {
-  navigateTo('/chat')
+  // クエリ id を外して新規チャットとして開始
+  navigateTo({ path: '/chat', query: {} })
 }
 
 async function rename(id: number) {
@@ -94,6 +96,7 @@ watch(isLoggedIn, (v, ov) => {
     } else {
       window.removeEventListener('chat-title-updated', handler)
       chats.value = []
+      query.value = ''
     }
   }
 })

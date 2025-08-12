@@ -1,5 +1,6 @@
 import { google } from '@ai-sdk/google';
 import type { LanguageModelV1 } from 'ai';
+import { debugLog } from '../../shared/logger';
 
 export type Provider = 'gemini';
 
@@ -17,6 +18,7 @@ export function getLanguageModel(): LanguageModelV1 {
   const modelEnv = process.env.GEMINI_MODEL;
   if (!modelEnv) throw new Error('Missing required env: GEMINI_MODEL');
   const configuredModel = normalizeModelId(modelEnv);
+  debugLog('LLM: provider setup', { provider, model: configuredModel });
   return google(configuredModel);
 }
 

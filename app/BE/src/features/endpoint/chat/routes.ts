@@ -4,6 +4,7 @@ import { chatService } from './service';
 import { jwtRequired } from '../../../shared/auth/jwt';
 import { listChatsByUser, getMessagesByChat, renameChat, deleteChat } from './repository';
 import { sendPlainStream } from '../../../shared/streaming/sendPlainStream';
+import { debugLog, debugError, debugWarn } from '../../../shared/logger';
 
 export function chatRouter() {
   const router = Router();
@@ -13,21 +14,29 @@ export function chatRouter() {
       const userId: number | undefined = (res.locals as any)?.userId;
       const parse = chatBodySchema.safeParse(req.body);
       if (!parse.success) {
+        debugWarn('POST /api/chat invalid body', { body: req.body });
         return res.status(400).json({ error: 'Invalid body' });
       }
 
       const chatIdParam = req.header('x-chat-id');
       const chatId = chatIdParam ? Number(chatIdParam) : undefined;
-
+      debugLog('POST /api/chat start', {
+        userId,
+        chatIdHeader: chatIdParam ?? null,
+        messages: parse.data.messages.length,
+      });
       const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId, userId);
       res.setHeader('X-Chat-Id', String(effectiveChatId));
+      debugLog('POST /api/chat streaming begin', { effectiveChatId });
       sendPlainStream(req, res, readable);
     } catch (error) {
       if ((error as any)?.code === 'USER_NOT_FOUND') {
+        debugWarn('POST /api/chat user not found');
         return res.status(401).json({ error: 'Invalid user (please login again)' });
       }
       // eslint-disable-next-line no-console
       console.error(error);
+      debugError('POST /api/chat failed', error);
       res.status(500).end();
     }
   });
@@ -36,11 +45,13 @@ export function chatRouter() {
   router.get('/chats', jwtRequired(), async (_req: Request, res: Response) => {
     try {
       const userId: number | undefined = (res.locals as any)?.userId;
+      debugLog('GET /api/chat/chats', { userId });
       const chats = await listChatsByUser(userId!);
       return res.json({ chats });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      debugError('GET /api/chat/chats failed', error);
       return res.status(500).end();
     }
   });
@@ -50,12 +61,14 @@ export function chatRouter() {
     try {
       const userId: number | undefined = (res.locals as any)?.userId;
       const chatId = Number(req.params.id);
+       debugLog('GET /api/chat/:id/messages', { userId, chatId });
       const messages = await getMessagesByChat(chatId, userId!);
       if (!messages.length) return res.status(404).json({ error: 'Not found' });
       return res.json({ messages });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      debugError('GET /api/chat/:id/messages failed', error);
       return res.status(500).end();
     }
   });
@@ -67,12 +80,14 @@ export function chatRouter() {
       const chatId = Number(req.params.id);
       const title = String((req.body?.title ?? '') as string);
       if (!title) return res.status(400).json({ error: 'title is required' });
+      debugLog('PATCH /api/chat/:id', { userId, chatId, title });
       const ok = await renameChat(chatId, userId!, title);
       if (!ok) return res.status(404).json({ error: 'Not found' });
       return res.json({ ok: true });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      debugError('PATCH /api/chat/:id failed', error);
       return res.status(500).end();
     }
   });
@@ -82,12 +97,14 @@ export function chatRouter() {
     try {
       const userId: number | undefined = (res.locals as any)?.userId;
       const chatId = Number(req.params.id);
+      debugLog('DELETE /api/chat/:id', { userId, chatId });
       const ok = await deleteChat(chatId, userId!);
       if (!ok) return res.status(404).json({ error: 'Not found' });
       return res.json({ ok: true });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(error);
+      debugError('DELETE /api/chat/:id failed', error);
       return res.status(500).end();
     }
   });

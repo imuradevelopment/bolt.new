@@ -67,22 +67,39 @@ async function send() {
 
     if (!res.ok) throw new Error(res.statusText || 'Request failed')
 
-    chatId.value = res.headers.get('x-chat-id') || chatId.value
+    // 取得したチャットIDで URL を同期
+    const newId = res.headers.get('x-chat-id') || chatId.value
+    if (newId && newId !== chatId.value) {
+      chatId.value = newId
+      // URL を /chat?id=xxx に更新（履歴は置換して戻れるように）
+      await navigateTo({ path: '/chat', query: { id: String(newId) } }, { replace: true })
+      // サイドバーの選択を反映したいので、一覧を更新
+      try {
+        const data = await get<{ chats: ChatItem[] }>(`/api/chat/chats`)
+        // chats はこのページ内でも持っているので更新
+        chats.value = data.chats
+      } catch {}
+    }
     const reader = res.body?.getReader()
     const decoder = new TextDecoder()
     let acc = ''
     const assistantIndex = messages.value.push({ role: 'assistant', content: '' }) - 1
     if (reader) {
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true })
-          if (chunk) {
-            acc += chunk
-            messages.value[assistantIndex].content = acc
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true })
+            if (chunk) {
+              acc += chunk
+              messages.value[assistantIndex].content = acc
+            }
           }
+          if (done) break
         }
+      } finally {
+        // ストリームの終了を検知してロード状態を解除
+        isStreaming.value = false
       }
     }
     // 初回応答完了タイミングでサイドバーを更新（タイトルが確定）
@@ -102,11 +119,25 @@ const route = useRoute()
 onMounted(() => {
   const id = route.query.id
   if (id) openChat(Number(id))
+  else {
+    // 新規チャット表示用に状態を初期化
+    chatId.value = null
+    messages.value = []
+  }
 })
 watch(
   () => route.query.id,
   (id, oldId) => {
-    if (!id || id === oldId) return
+    if (!id) {
+      // New Chat に遷移したときは状態を完全リセット
+      chatId.value = null
+      messages.value = []
+      input.value = ''
+      isStreaming.value = false
+      error.value = ''
+      return
+    }
+    if (id === oldId) return
     openChat(Number(id))
   }
 )

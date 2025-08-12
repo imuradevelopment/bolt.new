@@ -1,5 +1,6 @@
 import { isPostgres } from '../../../shared/database';
 import { getPgPool } from '../../../shared/database/postgres';
+import { debugLog } from '../../../shared/logger';
 
 export interface ChatRecord {
   id: number;
@@ -36,6 +37,7 @@ export async function createChatIfNotExists(userId?: number | null, chatId?: num
     if (rows.length > 0) return Number(chatId);
   }
   const { rows } = await pool.query('INSERT INTO chats (user_id, title) VALUES ($1, $2) RETURNING id', [userId ?? null, null]);
+  debugLog('repository: chat created', { userId, id: rows[0]?.id });
   return Number(rows[0]?.id || 0);
 }
 
@@ -50,6 +52,7 @@ export async function insertMessage(chatId: number, role: 'user' | 'assistant' |
   try {
     await pool.query('UPDATE chats SET title = title, created_at = created_at WHERE id = $1', [Number(chatId)]);
   } catch {}
+  debugLog('repository: message inserted', { chatId, role, length: content.length, id: rows[0]?.id });
   return Number(rows[0]?.id || 0);
 }
 

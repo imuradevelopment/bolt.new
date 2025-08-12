@@ -13,6 +13,7 @@ Hard requirements:
 - The tag must appear once, at the very end (no trailing characters after the closing tag).
 - Title length should be up to 30 characters, no quotes, no newlines.
 - Do not include any preface or meta explanations about the title.
+ - Even if you decline or cannot answer, still output a minimal helpful reply followed by the chatTitle tag.
 `;
 
 
