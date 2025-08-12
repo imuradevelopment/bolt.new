@@ -161,7 +161,7 @@ watch(messages, () => {
 </script>
 
 <style scoped>
-.chat-page { display: grid; grid-template-rows: 1fr auto; gap: 10px; height: 100%; }
+.chat-page { display: grid; grid-template-rows: 1fr auto; gap: 10px; height: 100%; overflow: hidden; }
 .messages { overflow: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 8px; }
 .bubble { max-width: 72%; padding: 10px 12px; border-radius: 14px; line-height: 1.5; white-space: pre-wrap; }
 .bubble.user { align-self: flex-end; background: #eef2ff; border-top-right-radius: 6px; }
