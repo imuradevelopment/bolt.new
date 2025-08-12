@@ -87,25 +87,25 @@ store/
 ```
 Nuxt 3 の Pinia を用いる場合は `stores/xxxx.ts` にも対応可だが、本プロジェクトでは上記命名を推奨。
 
-## 推奨ディレクトリ構成（Nuxt 3）
+## 推奨ディレクトリ構成（Nuxt 3, srcDir）
 ```
 app/FE/
-  components/
-    templates/
-    organisms/
-    atoms/
-    molecules/
-    organisms/
-    templates/
-  pages/
-  layouts/
-  composables/
-  store/
-  static/
-  assets/
-  plugins/
-  middleware/
-  types/
+  src/
+    components/
+      templates/
+      organisms/
+      atoms/
+      molecules/
+    pages/
+    layouts/
+    composables/
+    store/
+    static/
+    assets/
+    plugins/
+    middleware/
+    types/
+  nuxt.config.ts  # srcDir: 'src'
 ```
 
 ### 本リポジトリでの骨子（例）
@@ -144,7 +144,6 @@ NITRO_PORT=3001 pnpm dev
 ```
 
 - バックエンドのベースURLは環境変数から参照します。
- - バックエンドのベースURLは環境変数から参照します。
 
 ```
 # .env の例

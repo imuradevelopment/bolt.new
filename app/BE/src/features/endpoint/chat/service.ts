@@ -38,7 +38,8 @@ export async function chatService(body: ChatBody, chatId?: number | null) {
       messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
       const result = await streamText(messages, undefined, options);
-      stream.switchSource(result.toAIStream());
+      const transformed = result.toAIStream().pipeThrough(sseToPlainTextTransform());
+      stream.switchSource(transformed);
     },
   };
 

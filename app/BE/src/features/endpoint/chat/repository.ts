@@ -1,5 +1,4 @@
-import { execFileSync } from 'node:child_process';
-import path from 'node:path';
+import { getDb } from '../../../shared/database/sqlite';
 
 export interface ChatRecord {
   id: number;
@@ -16,30 +15,26 @@ export interface MessageRecord {
   created_at: string;
 }
 
-
-function dbPath(): string {
-  return path.resolve(process.cwd(), 'db', path.basename(process.env.SQLITE_PATH || 'data.sqlite3'));
-}
-
-function runSql(sql: string): string {
-  return execFileSync('sqlite3', [dbPath(), sql], { encoding: 'utf8' }).trim();
-}
-
 export function createChatIfNotExists(chatId?: number | null): number {
+  const db = getDb();
   if (chatId) {
-    const exists = runSql(`SELECT 1 FROM chats WHERE id = ${Number(chatId)} LIMIT 1;`);
-    if (exists === '1') return Number(chatId);
+    const row = db
+      .prepare('SELECT 1 AS ok FROM chats WHERE id = ? LIMIT 1')
+      .get(Number(chatId));
+    if (row && row.ok === 1) return Number(chatId);
   }
-  runSql('INSERT INTO chats (user_id, title) VALUES (NULL, NULL);');
-  const id = runSql('SELECT last_insert_rowid();');
-  return Number(id || 0);
+  const info = db
+    .prepare('INSERT INTO chats (user_id, title) VALUES (?, ?)')
+    .run(null, null);
+  return Number(info.lastInsertRowid || 0);
 }
 
 export function insertMessage(chatId: number, role: 'user' | 'assistant' | 'system', content: string): number {
-  const esc = (s: string) => s.replace(/'/g, "''");
-  runSql(`INSERT INTO messages (chat_id, role, content) VALUES (${Number(chatId)}, '${esc(role)}', '${esc(content)}');`);
-  const id = runSql('SELECT last_insert_rowid();');
-  return Number(id || 0);
+  const db = getDb();
+  const info = db
+    .prepare('INSERT INTO messages (chat_id, role, content) VALUES (?, ?, ?)')
+    .run(Number(chatId), role, content);
+  return Number(info.lastInsertRowid || 0);
 }
 
 

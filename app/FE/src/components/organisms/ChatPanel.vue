@@ -21,7 +21,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Ref } from 'vue'
 
 interface ChatMessage { role: 'user' | 'assistant' | 'system'; content: string }
 

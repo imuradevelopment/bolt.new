@@ -152,7 +152,7 @@ pnpm dev
 
 ```
 pnpm db:generate   # DBML → SQL 生成（初回）
-pnpm db:migrate    # 生成SQLを適用（SQLite, better-sqlite3）
+pnpm db:migrate    # 生成SQLを適用（scripts/migrate.ts により __migrations__ を管理）
 ```
 
 補足（ネイティブ依存のビルド）
@@ -161,7 +161,7 @@ pnpm db:migrate    # 生成SQLを適用（SQLite, better-sqlite3）
   - 必要に応じて `pnpm rebuild better-sqlite3`
 
 補足（暫定テーブル作成）
-- 開発の利便性のため、未適用でも起動時にテーブルを作成する暫定処理（`ensureSchema()`）を `/features/endpoint/chat/service.ts` で呼び出しています。マイグレーション前提に切り替える場合はこの呼び出しを削除してください。
+- マイグレーション前提に統一しました。`ensureSchema()` は使用していません。
 
 トラブルシュート
 - ポート競合（EADDRINUSE: :4000）: 既存プロセスを停止するか `PORT` を変更

@@ -11,7 +11,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:generate": "tsx scripts/dbml-generate.ts",
-    "db:migrate": "sh -lc \"mkdir -p db && sqlite3 ${SQLITE_PATH:-db/data.sqlite3} < db/migrations/000_init.sql\""
+    "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^0.0.43",
