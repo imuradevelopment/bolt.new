@@ -64,6 +64,25 @@ export async function getMessagesByChat(chatId: number, userId: number): Promise
   return rows as MessageRecord[];
 }
 
+export async function listPublicChats(): Promise<ChatRecord[]> {
+  const pool = getPgPool();
+  const { rows } = await pool.query(
+    'SELECT id, user_id, title, created_at FROM chats WHERE user_id IS NULL ORDER BY id DESC'
+  );
+  return rows as ChatRecord[];
+}
+
+export async function getPublicMessagesByChat(chatId: number): Promise<MessageRecord[]> {
+  const pool = getPgPool();
+  const ok = await pool.query('SELECT 1 FROM chats WHERE id = $1 AND user_id IS NULL', [chatId]);
+  if (!ok.rows.length) return [];
+  const { rows } = await pool.query(
+    'SELECT id, chat_id, role, content, created_at FROM messages WHERE chat_id = $1 ORDER BY id ASC',
+    [chatId]
+  );
+  return rows as MessageRecord[];
+}
+
 export async function renameChat(chatId: number, userId: number, title: string): Promise<boolean> {
   const pool = getPgPool();
   const result = await pool.query('UPDATE chats SET title = $1 WHERE id = $2 AND user_id = $3', [
@@ -77,6 +96,24 @@ export async function renameChat(chatId: number, userId: number, title: string):
 export async function deleteChat(chatId: number, userId: number): Promise<boolean> {
   const pool = getPgPool();
   const ok = await pool.query('SELECT 1 FROM chats WHERE id = $1 AND user_id = $2', [chatId, userId]);
+  if (!ok.rows.length) return false;
+  await pool.query('DELETE FROM messages WHERE chat_id = $1', [chatId]);
+  const result = await pool.query('DELETE FROM chats WHERE id = $1', [chatId]);
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function renamePublicChat(chatId: number, title: string): Promise<boolean> {
+  const pool = getPgPool();
+  const result = await pool.query('UPDATE chats SET title = $1 WHERE id = $2 AND user_id IS NULL', [
+    title,
+    chatId,
+  ]);
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function deletePublicChat(chatId: number): Promise<boolean> {
+  const pool = getPgPool();
+  const ok = await pool.query('SELECT 1 FROM chats WHERE id = $1 AND user_id IS NULL', [chatId]);
   if (!ok.rows.length) return false;
   await pool.query('DELETE FROM messages WHERE chat_id = $1', [chatId]);
   const result = await pool.query('DELETE FROM chats WHERE id = $1', [chatId]);

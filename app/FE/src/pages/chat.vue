@@ -1,12 +1,30 @@
 <template>
   <ChatTemplate>
-    <ChatPanel
-      :messages="messages"
-      v-model:input="input"
-      :is-streaming="isStreaming"
-      :error="error"
-      @send="send"
-    />
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-1 border rounded p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold">Chats</h2>
+          <button class="text-sm border rounded px-2 py-1" @click="refreshChats">Refresh</button>
+        </div>
+        <div v-if="chats.length === 0" class="text-sm text-gray-500">No chats</div>
+        <ul class="space-y-1">
+          <li v-for="c in chats" :key="c.id" class="flex items-center gap-2">
+            <button class="flex-1 text-left underline" @click="openChat(c.id)">{{ c.title || `Chat #${c.id}` }}</button>
+            <button class="text-xs border rounded px-1" @click="rename(c.id)">Rename</button>
+            <button class="text-xs border rounded px-1" @click="removeChat(c.id)">Delete</button>
+          </li>
+        </ul>
+      </div>
+      <div class="md:col-span-2">
+        <ChatPanel
+          :messages="messages"
+          v-model:input="input"
+          :is-streaming="isStreaming"
+          :error="error"
+          @send="send"
+        />
+      </div>
+    </div>
   </ChatTemplate>
 </template>
 
@@ -14,6 +32,7 @@
 import { ref } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
 import { useBasicAuth } from '~/composables/useBasicAuth'
+import { useApi } from '~/composables/useApi'
 import ChatTemplate from '~/components/templates/ChatTemplate.vue'
 import ChatPanel from '~/components/organisms/ChatPanel.vue'
 
@@ -21,6 +40,7 @@ definePageMeta({ middleware: ['require-auth-client'] })
 
 type Role = 'user' | 'assistant' | 'system'
 interface ChatMessage { role: Role; content: string }
+interface ChatItem { id: number; title: string | null }
 
 const messages = ref<ChatMessage[]>([])
 const chatId = ref<string | null>(null)
@@ -32,6 +52,8 @@ const { show } = useGlobalAlert()
 const config = useRuntimeConfig()
 const apiBaseUrl: string = config.public.apiBaseUrl
 const { getAuthHeader } = useBasicAuth()
+const { get, patch, del } = useApi()
+const chats = ref<ChatItem[]>([])
 
 async function send() {
   if (!input.value || isStreaming.value) return
@@ -78,6 +100,55 @@ async function send() {
     isStreaming.value = false
   }
 }
+
+async function refreshChats() {
+  try {
+    const data = await get<{ chats: { id: number; title: string | null }[] }>(`/api/chat/chats`)
+    chats.value = data.chats
+  } catch (e: any) {
+    show(e?.message || 'failed to load chats')
+  }
+}
+
+async function openChat(id: number) {
+  chatId.value = String(id)
+  messages.value = []
+  try {
+    const data = await get<{ messages: ChatMessage[] }>(`/api/chat/${id}/messages`)
+    messages.value = data.messages
+  } catch (e: any) {
+    show(e?.message || 'failed to load messages')
+  }
+}
+
+async function rename(id: number) {
+  const title = prompt('New title?')
+  if (!title) return
+  try {
+    await patch(`/api/chat/${id}`, { title })
+    await refreshChats()
+  } catch (e: any) {
+    show(e?.message || 'rename failed')
+  }
+}
+
+async function removeChat(id: number) {
+  if (!confirm('Delete this chat?')) return
+  try {
+    await del(`/api/chat/${id}`)
+    if (chatId.value === String(id)) {
+      chatId.value = null
+      messages.value = []
+    }
+    await refreshChats()
+  } catch (e: any) {
+    show(e?.message || 'delete failed')
+  }
+}
+
+onMounted(() => {
+  refreshChats()
+})
 
 </script>
 
