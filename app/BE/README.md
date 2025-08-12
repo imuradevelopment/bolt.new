@@ -6,7 +6,6 @@
 
 - Node.js >= 18.18 / pnpm
 - Gemini の API キー（取得先: [Google AI Studio の API キー管理](https://aistudio.google.com/app/apikey)）
-- DB は Postgres 固定です。環境変数 `POSTGRES_URL` を設定してください。
 
 2) .env を作成
 
