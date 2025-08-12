@@ -9,7 +9,7 @@ function ensureDir(p: string) {
   if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
 }
 
-function main() {
+async function main() {
   ensureDir(MIGRATIONS_DIR);
 
   const migrations = fs
