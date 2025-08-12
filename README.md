@@ -1,21 +1,16 @@
-## Docker での起動（BE/FE/DB 一括）
+## Docker での起動
 
-1) 前提
-- Docker / Docker Compose
-- `app/BE/.env` と `app/FE/.env` を作成（`.env.example` をベースに設定）
-- BE 側 `.env` に `POSTGRES_URL` を未指定でも、Compose 既定の `db` サービスへ接続します
+BE と FE は将来分割を想定し、各ディレクトリごとに `docker-compose.yml` を配置しています。
 
-2) 起動
-```
-docker compose up --build
-```
-- FE: `http://localhost:3000`
-- BE: `http://localhost:4000`
-- DB: `postgres://postgres:postgres@localhost:5432/bolt`
+- バックエンド（BE）
+  - ファイル: `app/BE/docker-compose.yml`
+  - 起動: `cd app/BE && docker compose up --build`
+  - URL: `http://localhost:4000`
+  - 備考: `POSTGRES_URL` 未設定時は `db` サービス（Postgres）に接続
 
-3) 停止/削除
-```
-docker compose down
-```
+- フロントエンド（FE）
+  - ファイル: `app/FE/docker-compose.yml`
+  - 起動: `cd app/FE && docker compose up --build`
+  - URL: `http://localhost:3000`
 
 
