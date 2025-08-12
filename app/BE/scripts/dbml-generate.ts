@@ -7,7 +7,7 @@ import path from 'node:path';
 function main() {
   const dbmlPath = path.resolve(process.cwd(), 'db', 'datamase.dbml');
   const outPath = path.resolve(process.cwd(), 'db', 'migrations', '000_init.sql');
-  const dialect = (process.env.DB_DIALECT || 'sqlite').toLowerCase();
+  const dialect = 'postgres';
 
   if (!fs.existsSync(dbmlPath)) {
     console.error(`DBML not found: ${dbmlPath}`);
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 `;
 
-  const sql = dialect === 'postgres' ? sqlPg : sqlSqlite;
+  const sql = sqlPg;
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, sql);

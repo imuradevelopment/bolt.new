@@ -6,9 +6,7 @@
 
 - Node.js >= 18.18 / pnpm
 - Gemini の API キー（取得先: [Google AI Studio の API キー管理](https://aistudio.google.com/app/apikey)）
- - DB は以下から選択:
-   - SQLite（既定。追加設定不要）
-   - Postgres（環境変数 `DB_DIALECT=postgres` と `POSTGRES_URL` を設定）
+- DB は Postgres 固定です（SQLite は廃止）。環境変数 `POSTGRES_URL` を設定してください。
 
 2) .env を作成
 
@@ -24,8 +22,8 @@ cp .env.example .env
 
 ```
 pnpm i
-pnpm db:generate   # 毎回 DBML から SQL を生成
-pnpm db:migrate    # 生成 SQL を適用（__migrations__ で管理）
+pnpm db:generate   # 毎回 DBML から SQL を生成（Postgres 用）
+pnpm db:migrate    # 生成 SQL を適用（__migrations__ で管理、Postgres）
 ```
 
 4) 起動

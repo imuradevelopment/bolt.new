@@ -1,8 +1,7 @@
 export function isPostgres(): boolean {
-  return (process.env.DB_DIALECT || '').toLowerCase() === 'postgres';
+  return true;
 }
 
-export { getDb } from './sqlite';
 export { getPgPool } from './postgres';
 
 
