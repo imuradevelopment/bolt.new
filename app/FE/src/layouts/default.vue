@@ -24,9 +24,9 @@ import AppHeader from '~/components/organisms/AppHeader.vue'
 </script>
 
 <style>
-.app-root { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 56px); }
-.app-aside { background: #fff; }
-.app-main { padding: 16px; }
+.app-root { display: grid; grid-template-columns: 240px 1fr; height: calc(100vh - 56px); overflow: hidden; }
+.app-aside { background: #fff; height: 100%; overflow: auto; }
+.app-main { padding: 16px; height: 100%; overflow: auto; }
 .fade-enter-active, .fade-leave-active { transition: opacity .2s }
 .fade-enter-from, .fade-leave-to { opacity: 0 }
 @media (max-width: 860px) {

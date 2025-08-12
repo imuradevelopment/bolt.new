@@ -1,13 +1,7 @@
 <template>
   <section class="container">
-    <header class="header">
-      <slot name="title"><h1 class="title">MVP Chat</h1></slot>
-    </header>
-    <main class="content">
-      <slot />
-    </main>
+    <slot />
   </section>
-  
 </template>
 
 <script setup lang="ts">
@@ -15,8 +9,5 @@
 </script>
 
 <style scoped>
-.container { display: flex; flex-direction: column; gap: 16px; }
-.header { padding: 8px 0; }
-.title { font-weight: 700; font-size: 20px; }
-.content { }
+.container { display: contents; }
 </style>

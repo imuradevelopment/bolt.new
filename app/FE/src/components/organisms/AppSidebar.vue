@@ -77,7 +77,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-.sidebar { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-right: 1px solid #e5e5e5; min-height: calc(100vh - 56px); }
+.sidebar { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-right: 1px solid #e5e5e5; height: 100%; }
 .row { display: flex; gap: 8px; }
 .small { margin-top: auto; }
 .w-full { width: 100%; }
