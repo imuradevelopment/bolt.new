@@ -40,18 +40,29 @@ async function login() {
   error.value = ''
   submitting.value = true
   try {
-    // まずはログインを試行
-    let data: { token: string } | null = null
+    // まずログインを試行
     try {
-      data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+      const data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+      if (!data?.token) throw new Error('認証に失敗しました')
+      setToken(data.token, u.value)
+      await router.push('/chat')
+      return
     } catch (e: any) {
-      // 未登録 or 認証失敗 → 登録を試してから再ログイン
-      await post(`/api/auth/register`, { name: u.value, password: p.value })
-      data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+      // 401 の場合のみ登録→再ログイン
+      try {
+        await post(`/api/auth/register`, { name: u.value, password: p.value })
+      } catch (re: any) {
+        // 409=既存ユーザー → パスワード違いとみなす
+        if (String(re?.message || '').includes('409') || String(re).includes('USER_EXISTS')) {
+          throw new Error('ユーザーは既に存在します。パスワードが正しいか確認してください。')
+        }
+        throw re
+      }
+      const data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+      if (!data?.token) throw new Error('認証に失敗しました')
+      setToken(data.token, u.value)
+      await router.push('/chat')
     }
-    if (!data?.token) throw new Error('認証に失敗しました')
-    setToken(data.token, u.value)
-    await router.push('/chat')
   } catch (e: any) {
     error.value = e?.message || 'Unknown error'
   } finally {

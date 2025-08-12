@@ -25,14 +25,21 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
         try {
           if (text) {
             await insertMessage(effectiveChatId, 'assistant', text);
-            // タイトルが未設定ならユーザー初回入力＋先頭応答からタイトル生成（簡易）
+            // タイトルが未設定なら最初のユーザー入力と最初の応答から生成
             try {
-              if (messages.length >= 2) {
-                const firstUser = messages.find((m) => m.role === 'user')?.content || '';
-                const firstAssistant = text;
-                const title = generateTitle(firstUser, firstAssistant);
-                await setTitleIfEmpty(effectiveChatId, title);
+              let firstAssistant = text || '';
+              // <chatTitle>...</chatTitle> を末尾から抽出（存在すればDB保存に使用し、本体からは除去済として扱う）
+              const m = firstAssistant.match(/<chatTitle>([^<]{1,100})<\/chatTitle>\s*$/);
+              let title: string | null = null;
+              if (m) {
+                title = m[1].trim();
+                firstAssistant = firstAssistant.replace(/<chatTitle>[^<]*<\/chatTitle>\s*$/, '').trimEnd();
               }
+              const firstUser = messages.find((mm) => mm.role === 'user')?.content || '';
+              if (!title) {
+                title = generateTitle(firstUser, firstAssistant);
+              }
+              await setTitleIfEmpty(effectiveChatId, title);
             } catch {}
           }
         } finally {
@@ -58,7 +65,9 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
     },
   };
 
-  const initial = await streamText(messages, undefined, options);
+  // 初回メッセージ（チャットID新規のとき）はタイトル指示を埋め込む
+  const includeTitleInstruction = !chatId;
+  const initial = await streamText(messages, { includeTitleInstruction }, options);
   const transformed = initial.toAIStream().pipeThrough(sseToPlainTextTransform());
   stream.switchSource(transformed);
 

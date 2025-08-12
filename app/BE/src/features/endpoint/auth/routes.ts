@@ -35,10 +35,14 @@ export function authJwtRouter() {
 
       const { salt, hash } = hashPassword(password);
       const passwordHash = `pbkdf2$${salt}$${hash}`;
+      // 既存ユーザーのパスワードは上書きせず、409 を返す
       const inserted = await pool.query(
-        'INSERT INTO users (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET password_hash = EXCLUDED.password_hash RETURNING id',
+        'INSERT INTO users (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING RETURNING id',
         [name, passwordHash]
       );
+      if (!inserted.rows[0]?.id) {
+        return res.status(409).json({ error: 'USER_EXISTS' });
+      }
       const userId = Number(inserted.rows[0]?.id);
       return res.json({ userId });
     } catch (e) {

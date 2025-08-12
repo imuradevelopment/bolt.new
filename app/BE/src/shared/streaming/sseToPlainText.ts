@@ -4,6 +4,7 @@ export function sseToPlainTextTransform(): TransformStream<Uint8Array, Uint8Arra
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let carry = '';
+  let seenTitle = false;
 
   return new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
@@ -21,7 +22,16 @@ export function sseToPlainTextTransform(): TransformStream<Uint8Array, Uint8Arra
         try {
           const part = parseStreamPart(trimmed);
           const value = typeof part.value === 'string' ? part.value : '';
-          if (value) acc += value;
+          if (value) {
+            // 出力の末尾に <chatTitle>...</chatTitle> が出てきたら、ユーザー表示からは除去する
+            if (!seenTitle && /<chatTitle>[^<]*<\/chatTitle>\s*$/.test(value)) {
+              const without = value.replace(/<chatTitle>[^<]*<\/chatTitle>\s*$/, '');
+              acc += without;
+              seenTitle = true;
+            } else {
+              acc += value;
+            }
+          }
         } catch (_e) {
           // ignore unparsable lines
         }

@@ -2,6 +2,7 @@ import type { CoreMessage, LanguageModelV1 } from 'ai';
 import { streamText as aiStreamText } from 'ai';
 import { getLanguageModel } from './model';
 import { MAX_TOKENS, TEMPERATURE, TOP_P, TOP_K } from './constants';
+import { TITLE_INSTRUCTION } from './prompts';
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -19,11 +20,16 @@ export interface StreamTextResult {
   toAIStream(): ReadableStream<Uint8Array>;
 }
 
-export async function streamText(messages: Message[], _env: unknown, options?: StreamingOptions): Promise<StreamTextResult> {
+export async function streamText(messages: Message[], env: { includeTitleInstruction?: boolean } | undefined, options?: StreamingOptions): Promise<StreamTextResult> {
   const model: LanguageModelV1 = getLanguageModel();
 
   // Vercel AI SDK に合わせる
-  const vercelMessages: CoreMessage[] = messages.map((m) => ({ role: m.role as any, content: m.content }));
+  const vercelMessages: CoreMessage[] = (() => {
+    // 初回応答時のみ TITLE_INSTRUCTION を system で先頭に追加可能
+    const addTitle = Boolean(env?.includeTitleInstruction);
+    const base = messages.map((m) => ({ role: m.role as any, content: m.content }));
+    return addTitle ? ([{ role: 'system' as any, content: TITLE_INSTRUCTION }, ...base]) : base;
+  })();
 
   const result = await aiStreamText({
     model,

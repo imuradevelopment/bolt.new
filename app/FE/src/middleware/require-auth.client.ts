@@ -1,9 +1,7 @@
 export default defineNuxtRouteMiddleware(() => {
-  // できるだけ同期的に判定（localStorage を直接確認）
-  if (process.client) {
-    const token = localStorage.getItem('jwtToken') || ''
-    if (!token) return navigateTo('/login')
-  }
+  // SSR/CSR ともに Cookie で判定
+  const token = useCookie<string | null>('jwtToken', { sameSite: 'lax' })
+  if (!token.value) return navigateTo('/login')
 })
 
 
