@@ -1,8 +1,0 @@
-version: "3.8"
-
-# monorepo では個別 compose を使用します
-# - app/BE/docker-compose.yml
-# - app/FE/docker-compose.yml
-
-
-
