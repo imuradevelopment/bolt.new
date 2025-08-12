@@ -32,6 +32,19 @@ services:
       - be_node_modules:/usr/src/app/node_modules
     command: sh -lc "pnpm i && pnpm db:generate && pnpm db:migrate && pnpm dev"
 
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+
 volumes:
   pgdata:
   be_node_modules:

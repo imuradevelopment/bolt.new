@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Local Bolt DB",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "bolt",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}
+
+
