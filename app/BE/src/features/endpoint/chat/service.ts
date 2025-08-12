@@ -22,7 +22,13 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
     toolChoice: 'none',
     onFinish: async ({ text, finishReason }) => {
       if (finishReason !== 'length') {
-        return stream.close();
+        try {
+          if (text) {
+            await insertMessage(effectiveChatId, 'assistant', text);
+          }
+        } finally {
+          return stream.close();
+        }
       }
 
       if (stream.switches >= MAX_RESPONSE_SEGMENTS) {
