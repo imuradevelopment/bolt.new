@@ -17,12 +17,13 @@ cp .env.example .env
 # API_BASE_URL=http://localhost:4000  # BE の URL
 ```
 
-3) 起動
+3) Docker で起動
 
 ```
-pnpm i
-pnpm dev
-# http://localhost:3000 で起動（srcDir: 'src' 構成）
+cd app/FE
+docker compose up --build
+# http://localhost:3000 （API_BASE_URL は be サービス/ローカル BE に合わせる）
+# 停止: docker compose down
 ```
 
 このディレクトリは、既存アプリを解析して再構築するフロントエンド（Nuxt 3）実装の置き場です。

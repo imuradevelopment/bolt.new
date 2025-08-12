@@ -18,19 +18,13 @@ cp .env.example .env
 # （任意）CORS_ORIGIN=http://localhost:3000  # FE 側ポートに合わせる
 ```
 
-3) 依存インストールと DB 準備
+3) Docker で起動（DB 生成/マイグレーションを自動実行）
 
 ```
-pnpm i
-pnpm db:generate   # 毎回 DBML から SQL を生成（Postgres 用）
-pnpm db:migrate    # 生成 SQL を適用（__migrations__ で管理、Postgres）
-```
-
-4) 起動
-
-```
-pnpm dev
-# http://localhost:4000
+cd app/BE
+docker compose up --build
+# BE: http://localhost:4000 （DB: Postgres は同一 compose の db サービス）
+# 停止: docker compose down
 ```
 
 このバックエンドは、既存実装（バックアップ参照）を Node.js/Express へ移植し、Nuxt 3（app/FE）から利用される API を提供します。
