@@ -166,7 +166,7 @@ watch(messages, () => {
 .bubble { max-width: 72%; padding: 10px 12px; border-radius: 14px; line-height: 1.5; white-space: pre-wrap; }
 .bubble.user { align-self: flex-end; background: #eef2ff; border-top-right-radius: 6px; }
 .bubble.assistant { align-self: flex-start; background: #f3f4f6; border-top-left-radius: 6px; }
-.composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; border-top: 1px solid #e5e5e5; background: #fff; }
+.composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; background: #fff; }
 .input { width: 100%; resize: none; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
 .send { padding: 10px 16px; border-radius: 10px; border: 1px solid #111; background: #111; color: #fff; }
 </style>

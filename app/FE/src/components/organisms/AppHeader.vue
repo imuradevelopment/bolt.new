@@ -3,16 +3,18 @@
     <div class="left">
       <NuxtLink to="/" class="brand">MVP Chat</NuxtLink>
     </div>
-    <div class="right">
-      <div v-if="isLoggedIn" class="user">
-        <button class="user-btn" @click="toggle">{{ name }}</button>
-        <div v-if="open" class="menu" @click.outside="open = false">
-          <button class="menu-item" @click="goChat">Chat</button>
-          <button class="menu-item" @click="logout">Logout</button>
+    <ClientOnly>
+      <div class="right">
+        <div v-if="isLoggedIn" class="user">
+          <button class="user-btn" @click="toggle">{{ name }}</button>
+          <div v-if="open" class="menu" @click.outside="open = false">
+            <button class="menu-item" @click="goChat">Chat</button>
+            <button class="menu-item" @click="logout">Logout</button>
+          </div>
         </div>
+        <NuxtLink v-else to="/login" class="login">Login</NuxtLink>
       </div>
-      <NuxtLink v-else to="/login" class="login">Login</NuxtLink>
-    </div>
+    </ClientOnly>
   </header>
 </template>
 
