@@ -1,5 +1,30 @@
 # Bolt FE (Nuxt 3)
 
+## クイックスタート（.env 作成と起動）
+
+1) 前提
+
+- Node.js >= 18.18 / pnpm
+- バックエンド（BE）が `http://localhost:4000` で起動していること（または BE の URL を把握）
+
+2) .env を作成
+
+```
+cd app/FE
+cp .env.example .env
+# 必要に応じて以下を調整
+# NITRO_PORT=3000
+# API_BASE_URL=http://localhost:4000  # BE の URL
+```
+
+3) 起動
+
+```
+pnpm i
+pnpm dev
+# http://localhost:3000 で起動（srcDir: 'src' 構成）
+```
+
 このディレクトリは、既存アプリを解析して再構築するフロントエンド（Nuxt 3）実装の置き場です。
 バックエンドは Node.js/Express（ポート: 4000）を想定し、`API_BASE_URL` で接続します。
 
@@ -126,13 +151,6 @@ API_BASE_URL=http://localhost:4000
 3) Organisms/Molecules/Atoms を段階的に実装
 4) 文言は `static/` に集約、フォームの状態/バリデーションは `composables/form/` に分離
 5) API 呼び出しはページから（即時フィードバックのみコンポーザブル直呼び可）
-
-## 実行（後で追加）
-```
-cd app/FE
-pnpm i
-pnpm dev
-```
 
 ### 実行（補足）
 

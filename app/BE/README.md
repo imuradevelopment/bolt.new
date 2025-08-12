@@ -1,5 +1,37 @@
 # Bolt BE (Express)
 
+## クイックスタート（.env 作成と起動）
+
+1) 前提
+
+- Node.js >= 18.18 / pnpm
+- Gemini の API キー（取得先: [Google AI Studio の API キー管理](https://aistudio.google.com/app/apikey)）
+
+2) .env を作成
+
+```
+cd app/BE
+cp .env.example .env
+# .env を開き、最低限以下を設定
+# GEMINI_API_KEY=取得したキー
+# （任意）CORS_ORIGIN=http://localhost:3000  # FE 側ポートに合わせる
+```
+
+3) 依存インストールと DB 準備
+
+```
+pnpm i
+pnpm db:generate   # 毎回 DBML から SQL を生成
+pnpm db:migrate    # 生成 SQL を適用（__migrations__ で管理）
+```
+
+4) 起動
+
+```
+pnpm dev
+# http://localhost:4000
+```
+
 このバックエンドは、既存実装（バックアップ参照）を Node.js/Express へ移植し、Nuxt 3（app/FE）から利用される API を提供します。
 
 ## 設計原則（必須ルール）
@@ -121,52 +153,6 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ```
 
 ---
-
-## 実行（開発）
-
-1) 依存インストール
-
-```
-cd app/BE
-pnpm i
-```
-
-2) `.env` を作成（最低限）
-
-```
-PORT=4000
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=あなたのキー
-GEMINI_MODEL=gemini-2.5-pro
-# FE のポートに合わせる（デフォルトは3000）
-CORS_ORIGIN=http://localhost:3000
-```
-
-3) 開発起動
-
-```
-pnpm dev
-```
-
-4) DB マイグレーション（推奨）
-
-```
-pnpm db:generate   # DBML → SQL 生成（初回）
-pnpm db:migrate    # 生成SQLを適用（scripts/migrate.ts により __migrations__ を管理）
-```
-
-補足（ネイティブ依存のビルド）
-- 初回は `better-sqlite3` のネイティブビルド承認が必要な場合があります。
-  - `pnpm approve-builds` を実行し、`better-sqlite3` を選択して承認
-  - 必要に応じて `pnpm rebuild better-sqlite3`
-
-補足（暫定テーブル作成）
-- マイグレーション前提に統一しました。`ensureSchema()` は使用していません。
-
-トラブルシュート
-- ポート競合（EADDRINUSE: :4000）: 既存プロセスを停止するか `PORT` を変更
-  - 例: `lsof -ti:4000 | xargs -r kill -9` / `fuser -k 4000/tcp`
-- CORSエラー: `CORS_ORIGIN` を FE の実ポートに合わせる
 
 ---
 
