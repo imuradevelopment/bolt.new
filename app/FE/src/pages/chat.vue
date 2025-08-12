@@ -1,28 +1,15 @@
 <template>
   <ChatTemplate>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="md:col-span-1 border rounded p-3 space-y-2">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold">Chats</h2>
-          <button class="text-sm border rounded px-2 py-1" @click="refreshChats">Refresh</button>
+    <div class="chat-page">
+      <div class="messages" ref="messagesEl">
+        <div v-for="(m, i) in messages" :key="i" :class="['bubble', m.role]">
+          <div class="role" v-if="false">{{ m.role }}</div>
+          <div class="content">{{ m.content }}</div>
         </div>
-        <div v-if="chats.length === 0" class="text-sm text-gray-500">No chats</div>
-        <ul class="space-y-1">
-          <li v-for="c in chats" :key="c.id" class="flex items-center gap-2">
-            <button class="flex-1 text-left underline" @click="openChat(c.id)">{{ c.title || `Chat #${c.id}` }}</button>
-            <button class="text-xs border rounded px-1" @click="rename(c.id)">Rename</button>
-            <button class="text-xs border rounded px-1" @click="removeChat(c.id)">Delete</button>
-          </li>
-        </ul>
       </div>
-      <div class="md:col-span-2">
-        <ChatPanel
-          :messages="messages"
-          v-model:input="input"
-          :is-streaming="isStreaming"
-          :error="error"
-          @send="send"
-        />
+      <div class="composer">
+        <textarea :value="input" @input="onInput" class="input" rows="2" placeholder="Type a message" />
+        <button :disabled="isStreaming || !input" class="send" @click="send">Send</button>
       </div>
     </div>
   </ChatTemplate>
@@ -54,6 +41,8 @@ const apiBaseUrl: string = config.public.apiBaseUrl
 const { getAuthHeader } = useJwtAuth()
 const { get, patch, del } = useApi()
 const chats = ref<ChatItem[]>([])
+
+function onInput(e: Event) { input.value = (e.target as HTMLTextAreaElement).value }
 
 async function send() {
   if (!input.value || isStreaming.value) return
@@ -161,10 +150,25 @@ onMounted(() => {
   refreshChats()
 })
 
+// 自動スクロール
+const messagesEl = ref<HTMLElement | null>(null)
+watch(messages, () => {
+  requestAnimationFrame(() => {
+    messagesEl.value?.scrollTo({ top: messagesEl.value.scrollHeight })
+  })
+})
+
 </script>
 
-<style>
-html, body, #__nuxt { height: 100%; }
+<style scoped>
+.chat-page { display: grid; grid-template-rows: 1fr auto; gap: 10px; height: calc(100vh - 56px); }
+.messages { overflow: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 8px; }
+.bubble { max-width: 72%; padding: 10px 12px; border-radius: 14px; line-height: 1.5; white-space: pre-wrap; }
+.bubble.user { align-self: flex-end; background: #eef2ff; border-top-right-radius: 6px; }
+.bubble.assistant { align-self: flex-start; background: #f3f4f6; border-top-left-radius: 6px; }
+.composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; border-top: 1px solid #e5e5e5; background: #fff; }
+.input { width: 100%; resize: none; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
+.send { padding: 10px 16px; border-radius: 10px; border: 1px solid #111; background: #111; color: #fff; }
 </style>
 
 
