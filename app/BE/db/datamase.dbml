@@ -2,7 +2,8 @@ Project datamase {}
 
 Table users {
   id integer [pk, increment]
-  name text
+  name text [unique]
+  password_hash text
   created_at datetime [default: `CURRENT_TIMESTAMP`]
 }
 

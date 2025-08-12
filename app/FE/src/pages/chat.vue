@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
-import { useBasicAuth } from '~/composables/useBasicAuth'
+import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useApi } from '~/composables/useApi'
 import ChatTemplate from '~/components/templates/ChatTemplate.vue'
 import ChatPanel from '~/components/organisms/ChatPanel.vue'
@@ -51,7 +51,7 @@ const { show } = useGlobalAlert()
 
 const config = useRuntimeConfig()
 const apiBaseUrl: string = config.public.apiBaseUrl
-const { getAuthHeader } = useBasicAuth()
+const { getAuthHeader } = useJwtAuth()
 const { get, patch, del } = useApi()
 const chats = ref<ChatItem[]>([])
 

@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(() => {
-  const { getAuthHeader } = useBasicAuth()
+  const { getAuthHeader } = useJwtAuth()
   const headers = getAuthHeader()
   if (!headers.Authorization) {
     return navigateTo('/')

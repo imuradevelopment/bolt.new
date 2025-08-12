@@ -1,7 +1,7 @@
 export function useApi() {
   const config = useRuntimeConfig()
   const apiBaseUrl: string = config.public.apiBaseUrl
-  const { getAuthHeader } = useBasicAuth()
+  const { getAuthHeader } = useJwtAuth()
 
   async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const headers: Record<string, string> = {

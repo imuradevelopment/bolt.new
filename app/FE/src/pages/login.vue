@@ -1,7 +1,7 @@
 <template>
   <ChatTemplate>
     <div class="border rounded p-4 max-w-md mx-auto space-y-3">
-      <h2 class="text-xl font-semibold">Login</h2>
+      <h2 class="text-xl font-semibold">Login / Register</h2>
       <div class="space-y-2">
         <label class="block text-sm">Username</label>
         <input v-model="u" class="w-full border rounded p-2" placeholder="alice" />
@@ -22,9 +22,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import ChatTemplate from '~/components/templates/ChatTemplate.vue'
-import { useBasicAuth } from '~/composables/useBasicAuth'
+import { useJwtAuth } from '~/composables/useJwtAuth'
+import { useApi } from '~/composables/useApi'
 
-const { setCredentials, getAuthHeader } = useBasicAuth()
+const { setToken } = useJwtAuth()
+const { post } = useApi()
 const config = useRuntimeConfig()
 const apiBaseUrl: string = config.public.apiBaseUrl
 const router = useRouter()
@@ -38,12 +40,15 @@ async function login() {
   error.value = ''
   submitting.value = true
   try {
-    setCredentials(u.value, p.value)
-    const res = await fetch(`${apiBaseUrl}/api/auth/whoami`, {
-      method: 'GET',
-      headers: { ...getAuthHeader() },
-    })
-    if (!res.ok) throw new Error('認証に失敗しました')
+    // まずは登録（既にあれば409になる）
+    try {
+      await post(`/api/auth/register`, { name: u.value, password: p.value })
+    } catch (_) {
+      // ignore (409 expected)
+    }
+    const data = await post<{ token: string }>(`/api/auth/login`, { name: u.value, password: p.value })
+    if (!data?.token) throw new Error('認証に失敗しました')
+    setToken(data.token, u.value)
     await router.push('/chat')
   } catch (e: any) {
     error.value = e?.message || 'Unknown error'
