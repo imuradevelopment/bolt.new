@@ -82,6 +82,10 @@ async function send() {
         }
       }
     }
+    // 初回応答完了タイミングでサイドバーを更新（タイトルが確定）
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('chat-title-updated'))
+    }
   } catch (e: any) {
     error.value = e?.message || 'Unknown error'
     show(error.value)

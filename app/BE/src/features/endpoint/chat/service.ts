@@ -4,7 +4,7 @@ import SwitchableStream from '../../llm/switchable-stream';
 import { CONTINUE_PROMPT } from '../../llm/prompts';
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '../../llm/constants';
 import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainText';
-import { createChatIfNotExists, insertMessage } from './repository';
+import { createChatIfNotExists, insertMessage, setTitleIfEmpty } from './repository';
 
 export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null) {
   const { messages } = body;
@@ -25,6 +25,15 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
         try {
           if (text) {
             await insertMessage(effectiveChatId, 'assistant', text);
+            // タイトルが未設定ならユーザー初回入力＋先頭応答からタイトル生成（簡易）
+            try {
+              if (messages.length >= 2) {
+                const firstUser = messages.find((m) => m.role === 'user')?.content || '';
+                const firstAssistant = text;
+                const title = generateTitle(firstUser, firstAssistant);
+                await setTitleIfEmpty(effectiveChatId, title);
+              }
+            } catch {}
           }
         } finally {
           return stream.close();
@@ -54,6 +63,15 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
   stream.switchSource(transformed);
 
   return { readable: stream.readable, chatId: effectiveChatId } as const;
+}
+
+function generateTitle(user: string, assistant: string): string {
+  const text = `${user} ${assistant}`.replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  // 先頭50文字程度、句読点や改行で区切る
+  const cut = text.split(/[。！？!?.\n]/)[0] || text;
+  const trimmed = cut.slice(0, 50);
+  return trimmed || 'New Chat';
 }
 
 

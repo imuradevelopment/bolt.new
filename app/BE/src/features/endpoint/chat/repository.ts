@@ -44,6 +44,12 @@ export async function insertMessage(chatId: number, role: 'user' | 'assistant' |
   return Number(rows[0]?.id || 0);
 }
 
+export async function setTitleIfEmpty(chatId: number, title: string): Promise<void> {
+  const pool = getPgPool();
+  if (!title) return;
+  await pool.query("UPDATE chats SET title = $1 WHERE id = $2 AND (title IS NULL OR title = '')", [title, chatId]);
+}
+
 export async function listChatsByUser(userId: number): Promise<ChatRecord[]> {
   const pool = getPgPool();
   const { rows } = await pool.query(

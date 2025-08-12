@@ -74,6 +74,13 @@ async function removeChat(id: number) {
 }
 
 onMounted(load)
+
+// 初回応答完了時にタイトルが確定 → リストを更新
+if (process.client) {
+  const handler = () => load()
+  window.addEventListener('chat-title-updated', handler)
+  onUnmounted(() => window.removeEventListener('chat-title-updated', handler))
+}
 </script>
 
 <style scoped>
