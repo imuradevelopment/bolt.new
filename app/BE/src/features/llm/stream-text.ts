@@ -1,7 +1,7 @@
 import type { CoreMessage, LanguageModelV1 } from 'ai';
 import { streamText as aiStreamText } from 'ai';
 import { getLanguageModel } from './model';
-import { MAX_TOKENS, TEMPERATURE } from './constants';
+import { MAX_TOKENS, TEMPERATURE, TOP_P, TOP_K } from './constants';
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -30,6 +30,8 @@ export async function streamText(messages: Message[], _env: unknown, options?: S
     messages: vercelMessages,
     maxTokens: MAX_TOKENS,
     temperature: TEMPERATURE,
+    ...(TOP_P !== undefined ? { topP: TOP_P } : {}),
+    ...(TOP_K !== undefined ? { topK: TOP_K } : {}),
     onFinish: async (event) => {
       await options?.onFinish?.({ text: event.text, finishReason: event.finishReason });
     },

@@ -174,7 +174,15 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 PORT=4000
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.5-pro
+GEMINI_MODEL=models/gemini-2.5-pro
+
+# 生成パラメータ（必須・フォールバック無し）
+LLM_MAX_TOKENS=2048
+LLM_MAX_RESPONSE_SEGMENTS=3
+LLM_TEMPERATURE=0.3
+# （任意）
+# LLM_TOP_P=0.9
+# LLM_TOP_K=40
 ```
 
 ## CORS
