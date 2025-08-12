@@ -9,7 +9,10 @@
       </div>
       <div class="composer">
         <textarea :value="input" @input="onInput" class="input" rows="2" placeholder="Type a message" />
-        <button :disabled="isStreaming || !input" class="send" @click="send">Send</button>
+        <button :disabled="isStreaming || !input" class="send" @click="send">
+          <span v-if="isStreaming" class="spinner" />
+          <span v-else>Send</span>
+        </button>
       </div>
     </div>
   </ChatTemplate>
@@ -173,6 +176,9 @@ watch(messages, () => {
 .composer { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; background: #fff; }
 .input { width: 100%; resize: none; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
 .send { padding: 10px 16px; border-radius: 10px; border: 1px solid #111; background: #111; color: #fff; }
+.spinner {
+  width: 16px; height: 16px; border: 2px solid #fff; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.8s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 
 
