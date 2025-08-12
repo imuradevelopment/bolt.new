@@ -6,7 +6,7 @@
 
 - Node.js >= 18.18 / pnpm
 - Gemini の API キー（取得先: [Google AI Studio の API キー管理](https://aistudio.google.com/app/apikey)）
-- DB は Postgres 固定です（SQLite は廃止）。環境変数 `POSTGRES_URL` を設定してください。
+- DB は Postgres 固定です。環境変数 `POSTGRES_URL` を設定してください。
 
 2) .env を作成
 
@@ -160,7 +160,7 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ## 外部サービスの不使用
 
 - CDN/マネージドDB/メール・SMS配信/オブジェクトストレージ等の外部クラウドサービスには依存しません。
-- 実行・データ保存はローカル/セルフホストで完結させます（開発DBは既定で SQLite）。
+- 実行・データ保存はローカル/セルフホストで完結させます。
 - メール等が必要な場合はローカルMTAやスタブで代替します（外部APIは利用しない）。
 
 ---
@@ -173,7 +173,7 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ## DB（DBML 駆動 + ORM）
 - 単一ソース: `db/datamase.dbml`
 - 生成: DBML → `db/migrations/*.sql`（例: `@dbml/cli`）
-- 適用: SQLite を既定（開発/小規模運用）。他 RDB に移行する場合はセルフホスト前提で接続設定のみ切替。
+- 適用: Postgres を既定とします。
 - モデル: ORM CLI で `src/models` を生成・同期（直接 import 禁止、`repository` 経由）
 
 ## 環境変数（開発例）
