@@ -1,4 +1,5 @@
 <template>
+  <AppHeader />
   <div class="app-root">
     <aside class="app-aside">
       <AppSidebar />
@@ -19,10 +20,11 @@
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
 const { message, visible } = useGlobalAlert()
 import AppSidebar from '~/components/organisms/AppSidebar.vue'
+import AppHeader from '~/components/organisms/AppHeader.vue'
 </script>
 
 <style>
-.app-root { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.app-root { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 56px); }
 .app-aside { background: #fff; }
 .app-main { padding: 16px; }
 .fade-enter-active, .fade-leave-active { transition: opacity .2s }

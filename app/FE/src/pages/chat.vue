@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
 import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useApi } from '~/composables/useApi'
@@ -100,6 +100,17 @@ async function send() {
     isStreaming.value = false
   }
 }
+
+// クエリの id でチャットを開く
+const route = useRoute()
+watch(
+  () => route.query.id,
+  (id) => {
+    if (!id) return
+    openChat(Number(id))
+  },
+  { immediate: true }
+)
 
 async function refreshChats() {
   try {
