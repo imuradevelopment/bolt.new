@@ -9,11 +9,11 @@ import { createChatIfNotExists, insertMessage } from './repository';
 export async function chatService(body: ChatBody, chatId?: number | null) {
   const { messages } = body;
 
-  const effectiveChatId = createChatIfNotExists(chatId);
+  const effectiveChatId = await createChatIfNotExists(chatId);
   // 直近のユーザー入力を保存（最後の message を想定）
   const lastUser = messages[messages.length - 1];
   if (lastUser?.role === 'user') {
-    insertMessage(effectiveChatId, 'user', lastUser.content);
+    await insertMessage(effectiveChatId, 'user', lastUser.content);
   }
 
   const stream = new SwitchableStream();
@@ -34,7 +34,7 @@ export async function chatService(body: ChatBody, chatId?: number | null) {
       console.log(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
 
       messages.push({ role: 'assistant', content: text });
-      insertMessage(effectiveChatId, 'assistant', text);
+      await insertMessage(effectiveChatId, 'assistant', text);
       messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
       const result = await streamText(messages, undefined, options);
