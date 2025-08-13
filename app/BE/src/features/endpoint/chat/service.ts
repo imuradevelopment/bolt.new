@@ -40,7 +40,11 @@ export async function chatService(
   messages = rows.map((r) => ({ role: r.role, content: r.content })) as typeof messages;
   debugLog('chatService: authoritative messages loaded', { effectiveChatId, messagesCount: messages.length });
 
-  // 簡易プリトリム（全履歴投げのMVPだが、極端な超過時に古いペアから落とす）
+  // 簡易プリトリム
+  // 全履歴投げを基本とし、文脈超過の恐れがある場合のみ
+  // 最古の user→assistant ペアから段階的に間引く安全ネット。
+  // 将来の「短期記憶/要約/RAG」は buildMessages 側に差し込み、
+  // ここは最終防衛ラインとして維持する。
   messages = trimHistoryForBudget(messages, MAX_TOKENS * 4);
   debugLog('chatService: messages after pre-trim', { effectiveChatId, messagesCount: messages.length });
 
@@ -55,6 +59,8 @@ export async function chatService(
       },
     });
   };
+
+  const shouldAutoCloseOnDone = MAX_RESPONSE_SEGMENTS === 0;
 
   const options: StreamingOptions = {
     toolChoice: 'none',
@@ -114,7 +120,7 @@ export async function chatService(
           debugLog('chatService: closing stream');
           // フォールバックで closeOnDone を使った場合はここで閉じない
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          if (typeof closedBySwitch === 'boolean' && !closedBySwitch) {
+          if (typeof closedBySwitch === 'boolean' && !closedBySwitch && !shouldAutoCloseOnDone) {
             return stream.close();
           }
           return;
@@ -149,8 +155,9 @@ export async function chatService(
   });
   const initial = await streamText(messages, { includeTitleInstruction, provider, model }, options);
   const transformed = initial.toAIStream().pipeThrough(sseToPlainTextTransform());
-  // onFinish 側でクローズ/フォールバック制御を行うため closeOnDone は false
-  stream.switchSource(transformed, { closeOnDone: false });
+  // 既定では継続生成を許可していないため、上流が完了したら自動で閉じる。
+  // 継続を許可（MAX_RESPONSE_SEGMENTS > 0）する場合のみ、自動クローズを抑止。
+  stream.switchSource(transformed, { closeOnDone: shouldAutoCloseOnDone });
   debugLog('chatService: initial stream switched');
 
   return { readable: stream.readable, chatId: effectiveChatId } as const;

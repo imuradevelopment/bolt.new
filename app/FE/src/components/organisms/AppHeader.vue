@@ -5,7 +5,7 @@
     </div>
     <ClientOnly>
       <div class="right">
-        <div v-if="isLoggedIn" class="user">
+        <div v-if="isLoggedIn" class="user" ref="root">
           <select class="model-select" v-model="provider" @change="persist">
             <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
@@ -13,7 +13,7 @@
             <option v-for="m in models" :key="m.id" :value="m.id">{{ m.label }}</option>
           </select>
           <button class="user-btn" @click="toggle">{{ name }}</button>
-          <div v-if="open" class="menu" @click.outside="open = false">
+          <div v-if="open" class="menu">
             <button class="menu-item" @click="goChat">Chat</button>
             <button class="menu-item" @click="logout">Logout</button>
           </div>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useModelSelector } from '~/composables/useModelSelector'
 
@@ -33,6 +33,7 @@ const { token, name: displayName, clear } = useJwtAuth()
 const isLoggedIn = computed(() => Boolean(token.value))
 const name = computed(() => displayName.value || 'user')
 const open = ref(false)
+const root = ref<HTMLElement | null>(null)
 const { selection, setProvider, setModel, providers: providerDefs, modelsForSelected, loaded, loadOptions } = useModelSelector()
 const provider = computed({ get: () => selection.value.provider, set: (v) => setProvider(v as any) })
 const model = computed({ get: () => selection.value.model, set: (v) => setModel(v) })
@@ -44,7 +45,20 @@ function logout() { clear(); open.value = false; navigateTo('/login') }
 function goChat() { navigateTo('/chat'); open.value = false }
 function persist() { /* 双方向同期は composable 側で行うため空実装 */ }
 
-onMounted(() => { if (!loaded.value) loadOptions() })
+function onDocumentClick(e: MouseEvent) {
+  if (!open.value) return
+  const el = root.value
+  const target = e.target as Node | null
+  if (el && target && !el.contains(target)) {
+    open.value = false
+  }
+}
+
+onMounted(() => {
+  if (!loaded.value) loadOptions()
+  if (process.client) document.addEventListener('click', onDocumentClick)
+})
+onBeforeUnmount(() => { if (process.client) document.removeEventListener('click', onDocumentClick) })
 </script>
 
 <style scoped>

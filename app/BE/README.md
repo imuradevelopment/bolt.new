@@ -7,7 +7,7 @@
 - Node.js >= 18.18 / pnpm
 - Gemini の API キー（取得先: [Google AI Studio の API キー管理](https://aistudio.google.com/app/apikey)）
 
-2) .env を作成
+2) .env を作成（CORS_ORIGIN 未設定だと起動時エラーになります。FE の実URLを指定してください）
 
 ```
 cd app/BE

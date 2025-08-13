@@ -40,7 +40,7 @@ export function useModelSelector() {
       // 読み込み失敗時は静的フォールバック
       providerDefs.value = [
         { id: 'gemini', name: 'Gemini', models: [ { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }, { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' } ] },
-        { id: 'openai', name: 'OpenAI', models: [ { id: 'gpt-4o', label: 'GPT-4o' }, { id: 'gpt-4o-mini', label: 'GPT-4o mini' } ] },
+        // OpenAI は BE 側で無効化しているため、フォールバック候補から除外
         { id: 'azure-openai', name: 'Azure OpenAI', models: [ { id: 'deployment', label: 'Azure deployment' } ] },
       ]
       loaded.value = true

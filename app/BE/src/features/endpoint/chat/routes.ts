@@ -90,7 +90,7 @@ export function chatRouter() {
       const chatId = Number(req.params.id);
        debugLog('GET /api/chat/:id/messages', { userId, chatId });
       const messages = await getMessagesByChat(chatId, userId!);
-      if (!messages.length) return res.status(404).json({ error: 'Not found' });
+      // 空でも 200 で空配列を返す（UX 一貫性のため）
       return res.json({ messages });
     } catch (error) {
       // eslint-disable-next-line no-console

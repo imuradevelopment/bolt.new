@@ -54,7 +54,10 @@ export async function streamText(
   });
 
   debugLog('LLM: request', {
-    model: provider,
+    provider,
+    model: modelId || (provider === 'azure-openai' ? 'deployment' : 'gemini-2.5-pro'),
+    contextWindow,
+    promptTokens,
     maxTokens: autoMaxTokens,
     temperature: genParams.temperature,
     topP: genParams.topP,
