@@ -34,6 +34,10 @@ export function chatRouter() {
         debugWarn('POST /api/chat user not found');
         return res.status(401).json({ error: 'Invalid user (please login again)' });
       }
+      if ((error as any)?.code === 'INVALID_LAST_MESSAGE') {
+        debugWarn('POST /api/chat last message must be user');
+        return res.status(400).json({ error: 'Invalid body: last message must be user' });
+      }
       // eslint-disable-next-line no-console
       console.error(error);
       debugError('POST /api/chat failed', error);

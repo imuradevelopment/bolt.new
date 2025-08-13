@@ -4,25 +4,34 @@ import SwitchableStream from '../../llm/switchable-stream';
 import { CONTINUE_PROMPT } from '../../llm/prompts';
 import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS } from '../../llm/constants';
 import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainText';
-import { createChatIfNotExists, insertMessage, setTitleIfEmpty } from './repository';
+import { createChatIfNotExists, insertMessage, setTitleIfEmpty, getMessagesByChat } from './repository';
 import { debugLog, debugError } from '../../../shared/logger';
 
 export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null) {
-  const { messages } = body;
+  const clientMessages = body.messages;
 
-  debugLog('chatService: begin', { userId, chatId, messagesCount: messages.length });
+  debugLog('chatService: begin', { userId, chatId, messagesCount: clientMessages.length });
   const effectiveChatId = await createChatIfNotExists(userId ?? null, chatId);
   debugLog('chatService: effectiveChatId', { effectiveChatId });
-  // 直近のユーザー入力を保存（最後の message を想定）
-  const lastUser = messages[messages.length - 1];
-  if (lastUser?.role === 'user') {
-    try {
-      await insertMessage(effectiveChatId, 'user', lastUser.content);
-      debugLog('chatService: user message saved', { effectiveChatId, length: lastUser.content.length });
-    } catch (e) {
-      debugError('chatService: failed to save user message', e);
-    }
+  // 直近のユーザー入力のみを受け入れる（その他は信用しない）
+  const lastUser = clientMessages[clientMessages.length - 1];
+  if (!lastUser || lastUser.role !== 'user') {
+    const err = new Error('Invalid body: last message must be user');
+    (err as any).code = 'INVALID_LAST_MESSAGE';
+    throw err;
   }
+  try {
+    await insertMessage(effectiveChatId, 'user', lastUser.content);
+    debugLog('chatService: user message saved', { effectiveChatId, length: lastUser.content.length });
+  } catch (e) {
+    debugError('chatService: failed to save user message', e);
+  }
+
+  // DB の権威履歴を復元（今回保存した user を含む）
+  let messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [];
+  const rows = await getMessagesByChat(effectiveChatId, Number(userId));
+  messages = rows.map((r) => ({ role: r.role, content: r.content })) as typeof messages;
+  debugLog('chatService: authoritative messages loaded', { effectiveChatId, messagesCount: messages.length });
 
   const stream = new SwitchableStream();
 
