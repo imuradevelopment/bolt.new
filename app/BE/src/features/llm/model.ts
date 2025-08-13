@@ -44,7 +44,7 @@ export function getLanguageModel(runtime?: { provider?: Provider; model?: string
     debugLog('LLM: provider setup', { provider, model: 'deployment' });
     const client = createOpenAI({ apiKey, baseURL, apiVersion, compatibility: 'azure' } as any);
     // For Azure, model id is ignored by endpoint (deployment in baseURL)
-    return client('gpt-4o');
+    return client(runtime?.model || 'gpt-4o');
   }
 
   throw new Error(`Unsupported LLM provider: ${provider}`);

@@ -19,7 +19,12 @@ export function llmRouter() {
         id: 'azure-openai',
         name: 'Azure OpenAI',
         models: [
-          { id: 'deployment', label: 'Use Azure deployment (configured by endpoint)' },
+          (() => {
+            const ep = process.env.AZURE_OPENAI_ENDPOINT || '';
+            const { deployment } = parseAzureEndpoint(ep);
+            const dep = deployment || process.env.AZURE_OPENAI_DEPLOYMENT || 'deployment';
+            return { id: dep, label: `Azure deployment: ${dep}` };
+          })() as any,
         ],
       },
     ];
@@ -28,7 +33,7 @@ export function llmRouter() {
       provider: process.env.LLM_PROVIDER || 'gemini',
       model:
         process.env.LLM_PROVIDER === 'azure-openai'
-          ? 'deployment'
+          ? (parseAzureEndpoint(process.env.AZURE_OPENAI_ENDPOINT || '').deployment || process.env.AZURE_OPENAI_DEPLOYMENT || 'deployment')
           : (process.env.GEMINI_MODEL || 'gemini-2.5-pro').replace(/^models\//, ''),
     };
 
@@ -36,6 +41,19 @@ export function llmRouter() {
   });
 
   return router;
+}
+
+function parseAzureEndpoint(input: string): { resource: string; deployment: string } {
+  try {
+    const url = new URL(input.includes('://') ? input : `https://${input}`);
+    const resource = `${url.protocol}//${url.host}`;
+    const parts = url.pathname.split('/').filter(Boolean);
+    const idx = parts.findIndex((p) => p === 'deployments');
+    const deployment = idx >= 0 && parts[idx + 1] ? parts[idx + 1] : '';
+    return { resource, deployment };
+  } catch {
+    return { resource: input.replace(/\/openai.*$/, ''), deployment: '' };
+  }
 }
 
 
