@@ -26,7 +26,16 @@ export function chatRouter() {
         messages: parse.data.messages.length,
       });
       const abortController = new AbortController();
-      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId, userId, abortController.signal);
+      const providerHeader = String(req.header('x-llm-provider') || '').trim();
+      const modelHeader = String(req.header('x-llm-model') || '').trim();
+      const { readable, chatId: effectiveChatId } = await chatService(
+        parse.data,
+        chatId,
+        userId,
+        abortController.signal,
+        providerHeader || undefined,
+        modelHeader || undefined
+      );
       res.setHeader('X-Chat-Id', String(effectiveChatId));
       debugLog('POST /api/chat streaming begin', { effectiveChatId });
       sendPlainStream(req, res, readable, () => abortController.abort());

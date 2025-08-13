@@ -7,7 +7,7 @@ export function cors() {
     origin,
     credentials: false,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Accept', 'X-Chat-Id', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Accept', 'X-Chat-Id', 'Authorization', 'X-LLM-Provider', 'X-LLM-Model'],
     exposedHeaders: ['X-Chat-Id'],
   });
 }

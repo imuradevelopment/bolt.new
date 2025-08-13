@@ -20,8 +20,12 @@ export interface StreamTextResult {
   toAIStream(): ReadableStream<Uint8Array>;
 }
 
-export async function streamText(messages: Message[], env: { includeTitleInstruction?: boolean } | undefined, options?: StreamingOptions): Promise<StreamTextResult> {
-  const model: LanguageModelV1 = getLanguageModel();
+export async function streamText(
+  messages: Message[],
+  env: { includeTitleInstruction?: boolean; provider?: 'gemini' | 'azure-openai' | 'openai'; model?: string; extra?: Record<string, string> } | undefined,
+  options?: StreamingOptions
+): Promise<StreamTextResult> {
+  const model: LanguageModelV1 = getLanguageModel({ provider: env?.provider as any, model: env?.model, extra: env?.extra });
 
   // Vercel AI SDK に合わせる
   const addTitle = Boolean(env?.includeTitleInstruction);
@@ -31,7 +35,7 @@ export async function streamText(messages: Message[], env: { includeTitleInstruc
     : base;
 
   debugLog('LLM: request', {
-    model: 'gemini',
+    model: env?.provider || 'gemini',
     maxTokens: MAX_TOKENS,
     temperature: TEMPERATURE,
     topP: TOP_P,

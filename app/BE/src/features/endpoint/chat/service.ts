@@ -7,7 +7,14 @@ import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainTex
 import { createChatIfNotExists, insertMessage, setTitleIfEmpty, getMessagesByChat } from './repository';
 import { debugLog, debugError } from '../../../shared/logger';
 
-export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null, abortSignal?: AbortSignal) {
+export async function chatService(
+  body: ChatBody,
+  chatId?: number | null,
+  userId?: number | null,
+  abortSignal?: AbortSignal,
+  provider?: 'gemini' | 'azure-openai' | 'openai',
+  model?: string
+) {
   const clientMessages = body.messages;
 
   debugLog('chatService: begin', { userId, chatId, messagesCount: clientMessages.length });
@@ -128,7 +135,7 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
       await insertMessage(effectiveChatId, 'assistant', text);
       messages.push({ role: 'user', content: CONTINUE_PROMPT });
 
-      const result = await streamText(messages, undefined, options);
+      const result = await streamText(messages, { provider, model }, options);
       const transformed = result.toAIStream().pipeThrough(sseToPlainTextTransform());
       stream.switchSource(transformed);
     },
@@ -140,7 +147,7 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
     includeTitleInstruction,
     messagesCount: messages.length,
   });
-  const initial = await streamText(messages, { includeTitleInstruction }, options);
+  const initial = await streamText(messages, { includeTitleInstruction, provider, model }, options);
   const transformed = initial.toAIStream().pipeThrough(sseToPlainTextTransform());
   // onFinish 側でクローズ/フォールバック制御を行うため closeOnDone は false
   stream.switchSource(transformed, { closeOnDone: false });

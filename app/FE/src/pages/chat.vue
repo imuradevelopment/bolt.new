@@ -23,6 +23,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
 import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useApi } from '~/composables/useApi'
+import { useModelSelector } from '~/composables/useModelSelector'
 import ChatTemplate from '~/components/templates/ChatTemplate.vue'
 
 definePageMeta({ middleware: ['require-auth-client'] })
@@ -43,6 +44,7 @@ const apiBaseUrl: string = config.public.apiBaseUrl
 const { getAuthHeader } = useJwtAuth()
 const { get, patch, del } = useApi()
 const chats = ref<ChatItem[]>([])
+const { selection, getHeaders } = useModelSelector()
 
 function onInput(e: Event) { input.value = (e.target as HTMLTextAreaElement).value }
 
@@ -56,7 +58,7 @@ async function send() {
   input.value = ''
 
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(chatId.value ? { 'x-chat-id': chatId.value } : {}) , ...getAuthHeader() }
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(chatId.value ? { 'x-chat-id': chatId.value } : {}) , ...getAuthHeader(), ...getHeaders() }
 
     const res = await fetch(`${apiBaseUrl}/api/chat`, {
       method: 'POST',

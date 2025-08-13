@@ -6,6 +6,12 @@
     <ClientOnly>
       <div class="right">
         <div v-if="isLoggedIn" class="user">
+          <select class="model-select" v-model="provider" @change="persist">
+            <option value="gemini">Gemini</option>
+            <option value="azure-openai">Azure OpenAI</option>
+            <option value="openai">OpenAI</option>
+          </select>
+          <input class="model-input" v-model="model" @change="persist" :placeholder="provider==='gemini' ? 'models/gemini-2.5-pro' : 'gpt-4o-mini or deployment'" />
           <button class="user-btn" @click="toggle">{{ name }}</button>
           <div v-if="open" class="menu" @click.outside="open = false">
             <button class="menu-item" @click="goChat">Chat</button>
@@ -21,15 +27,20 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useJwtAuth } from '~/composables/useJwtAuth'
+import { useModelSelector } from '~/composables/useModelSelector'
 
 const { token, name: displayName, clear } = useJwtAuth()
 const isLoggedIn = computed(() => Boolean(token.value))
 const name = computed(() => displayName.value || 'user')
 const open = ref(false)
+const { selection, setProvider, setModel } = useModelSelector()
+const provider = computed({ get: () => selection.value.provider, set: (v) => setProvider(v as any) })
+const model = computed({ get: () => selection.value.model, set: (v) => setModel(v) })
 
 function toggle() { open.value = !open.value }
 function logout() { clear(); open.value = false; navigateTo('/login') }
 function goChat() { navigateTo('/chat'); open.value = false }
+function persist() { /* 双方向同期は composable 側で行うため空実装 */ }
 </script>
 
 <style scoped>
@@ -37,6 +48,8 @@ function goChat() { navigateTo('/chat'); open.value = false }
 .brand { font-weight: 700; text-decoration: none; color: #111; }
 .user { position: relative; }
 .user-btn { border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; background: #fff; cursor: pointer; }
+.model-select { margin-right: 8px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; }
+.model-input { margin-right: 8px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; width: 260px; }
 .menu { position: absolute; right: 0; top: calc(100% + 6px); border: 1px solid #ddd; border-radius: 8px; background: #fff; min-width: 140px; box-shadow: 0 6px 18px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
 .menu-item { text-align: left; background: #fff; border: none; padding: 10px 12px; cursor: pointer; }
 .menu-item:hover { background: #f5f5f5; }

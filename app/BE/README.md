@@ -172,7 +172,7 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ## 環境変数（開発例）
 ```
 PORT=4000
-LLM_PROVIDER=gemini
+LLM_PROVIDER=gemini           # 'gemini' | 'azure-openai' | 'openai'
 GEMINI_API_KEY=...
 GEMINI_MODEL=models/gemini-2.5-pro
 
@@ -184,6 +184,14 @@ LLM_TEMPERATURE=1
 # （任意）Studio既定に近づける例
 LLM_TOP_P=0.95
 # LLM_TOP_K=40
+
+# Azure OpenAI を使う場合（LLM_PROVIDER=azure-openai）
+AZURE_OPENAI_API_KEY=...
+AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2025-01-01-preview
+
+# OpenAI を使う場合（LLM_PROVIDER=openai）
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-4o-mini
 ```
 
 ## CORS
