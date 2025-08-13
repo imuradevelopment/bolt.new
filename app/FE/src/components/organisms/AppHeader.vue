@@ -7,11 +7,11 @@
       <div class="right">
         <div v-if="isLoggedIn" class="user">
           <select class="model-select" v-model="provider" @change="persist">
-            <option value="gemini">Gemini</option>
-            <option value="azure-openai">Azure OpenAI</option>
-            <option value="openai">OpenAI</option>
+            <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
-          <input class="model-input" v-model="model" @change="persist" :placeholder="provider==='gemini' ? 'models/gemini-2.5-pro' : 'gpt-4o-mini or deployment'" />
+          <select class="model-input" v-model="model" @change="persist">
+            <option v-for="m in models" :key="m.id" :value="m.id">{{ m.label }}</option>
+          </select>
           <button class="user-btn" @click="toggle">{{ name }}</button>
           <div v-if="open" class="menu" @click.outside="open = false">
             <button class="menu-item" @click="goChat">Chat</button>
@@ -33,14 +33,18 @@ const { token, name: displayName, clear } = useJwtAuth()
 const isLoggedIn = computed(() => Boolean(token.value))
 const name = computed(() => displayName.value || 'user')
 const open = ref(false)
-const { selection, setProvider, setModel } = useModelSelector()
+const { selection, setProvider, setModel, providers, modelsForSelected, loaded, loadOptions } = useModelSelector()
 const provider = computed({ get: () => selection.value.provider, set: (v) => setProvider(v as any) })
 const model = computed({ get: () => selection.value.model, set: (v) => setModel(v) })
+const providers = providers
+const models = modelsForSelected
 
 function toggle() { open.value = !open.value }
 function logout() { clear(); open.value = false; navigateTo('/login') }
 function goChat() { navigateTo('/chat'); open.value = false }
 function persist() { /* 双方向同期は composable 側で行うため空実装 */ }
+
+onMounted(() => { if (!loaded.value) loadOptions() })
 </script>
 
 <style scoped>

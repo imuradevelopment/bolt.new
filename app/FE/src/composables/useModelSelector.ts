@@ -1,4 +1,5 @@
-import { ref, watch } from 'vue'
+import { watch, computed, ref } from 'vue'
+import { useApi } from '~/composables/useApi'
 
 type Provider = 'gemini' | 'azure-openai' | 'openai'
 
@@ -7,20 +8,55 @@ interface ModelSelection {
   model: string
 }
 
-const selection = useState<ModelSelection>('llmSelection', () => ({ provider: 'gemini', model: 'models/gemini-2.5-pro' }))
-
 export function useModelSelector() {
+  const selection = useState<ModelSelection>('llmSelection', () => ({ provider: 'gemini', model: 'models/gemini-2.5-pro' }))
   const provider = computed(() => selection.value.provider)
   const model = computed(() => selection.value.model)
 
-  if (process.client) {
-    const saved = localStorage.getItem('llmSelection')
-    if (saved) {
-      try { selection.value = JSON.parse(saved) } catch {}
+  const booted = useState<boolean>('llmSelectionBooted', () => false)
+  const loaded = useState<boolean>('llmOptionsLoaded', () => false)
+  const providerDefs = useState<any[]>('llmProviders', () => [])
+
+  async function loadOptions() {
+    if (loaded.value) return
+    const { get } = useApi()
+    try {
+      const data = await get<{ providers: { id: string; name: string; models: { id: string; label: string }[] }[]; defaults: { provider: string; model: string } }>(`/api/llm/models`)
+      providerDefs.value = data.providers
+      // 既存の選択が無効ならデフォルトに更新
+      const validProvider = data.providers.some(p => p.id === selection.value.provider)
+      if (!validProvider) selection.value.provider = (data.defaults.provider || 'gemini') as Provider
+      const models = data.providers.find(p => p.id === selection.value.provider)?.models || []
+      const validModel = models.some(m => m.id === (selection.value.model || '').replace(/^models\//,''))
+      if (!validModel) {
+        const next = (data.defaults.model || models[0]?.id || 'gemini-2.5-pro')
+        selection.value.model = next
+      } else {
+        // 保存値が 'models/' 付きなら正規化
+        selection.value.model = selection.value.model.replace(/^models\//,'')
+      }
+      loaded.value = true
+    } catch {
+      // 読み込み失敗時は静的フォールバック
+      providerDefs.value = [
+        { id: 'gemini', name: 'Gemini', models: [ { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }, { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' } ] },
+        { id: 'openai', name: 'OpenAI', models: [ { id: 'gpt-4o', label: 'GPT-4o' }, { id: 'gpt-4o-mini', label: 'GPT-4o mini' } ] },
+        { id: 'azure-openai', name: 'Azure OpenAI', models: [ { id: 'deployment', label: 'Azure deployment' } ] },
+      ]
+      loaded.value = true
     }
+  }
+  if (process.client && !booted.value) {
+    try {
+      const saved = localStorage.getItem('llmSelection')
+      if (saved) selection.value = JSON.parse(saved)
+    } catch {}
     watch(selection, (v) => {
       try { localStorage.setItem('llmSelection', JSON.stringify(v)) } catch {}
-    }, { deep: true })
+    }, { deep: true, immediate: true })
+    // オプション読み込み
+    loadOptions()
+    booted.value = true
   }
 
   function setProvider(p: Provider) { selection.value = { ...selection.value, provider: p } }
@@ -32,7 +68,16 @@ export function useModelSelector() {
     }
   }
 
-  return { selection, provider, model, setProvider, setModel, getHeaders }
+  const modelsForSelected = computed(() => (providerDefs.value.find(p => p.id === selection.value.provider)?.models || []) as { id: string; label: string }[])
+
+  // provider変更でモデルを有効値に寄せる
+  watch(provider, (p) => {
+    const list = providerDefs.value.find(x => x.id === p)?.models || []
+    if (!list.length) return
+    if (!list.some(m => m.id === selection.value.model)) selection.value = { ...selection.value, model: list[0].id }
+  })
+
+  return { selection, provider, model, setProvider, setModel, getHeaders, providers: providerDefs, modelsForSelected, loaded, loadOptions }
 }
 
 
