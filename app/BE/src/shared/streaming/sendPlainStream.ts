@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
 import { debugLog, debugError } from '../logger';
 
-export function sendPlainStream(req: Request, res: Response, stream: ReadableStream<Uint8Array>) {
+export function sendPlainStream(
+  req: Request,
+  res: Response,
+  stream: ReadableStream<Uint8Array>,
+  onAbort?: () => void
+) {
   res.status(200);
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   // Flush headers early to ensure chunked transfer starts
@@ -15,6 +20,7 @@ export function sendPlainStream(req: Request, res: Response, stream: ReadableStr
   const onClose = () => {
     reader.cancel().catch(() => {});
     debugLog('sendPlainStream: client closed connection');
+    try { onAbort?.(); } catch {}
   };
 
   res.on('close', onClose);

@@ -19,12 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useGlobalAlert } from '~/composables/useGlobalAlert'
 import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useApi } from '~/composables/useApi'
 import ChatTemplate from '~/components/templates/ChatTemplate.vue'
-import ChatPanel from '~/components/organisms/ChatPanel.vue'
 
 definePageMeta({ middleware: ['require-auth-client'] })
 
@@ -67,23 +66,18 @@ async function send() {
 
     if (!res.ok) throw new Error(res.statusText || 'Request failed')
 
-    // 取得したチャットIDで URL を同期
+    // 取得したチャットIDを先に記憶（ストリーミング完了後にナビゲートし、途中でstateを壊さない）
+    let pendingNavId: string | null = null
     const newId = res.headers.get('x-chat-id') || chatId.value
     if (newId && newId !== chatId.value) {
       chatId.value = newId
-      // URL を /chat?id=xxx に更新（履歴は置換して戻れるように）
-      await navigateTo({ path: '/chat', query: { id: String(newId) } }, { replace: true })
-      // サイドバーの選択を反映したいので、一覧を更新
-      try {
-        const data = await get<{ chats: ChatItem[] }>(`/api/chat/chats`)
-        // chats はこのページ内でも持っているので更新
-        chats.value = data.chats
-      } catch {}
+      pendingNavId = newId
     }
     const reader = res.body?.getReader()
     const decoder = new TextDecoder()
     let acc = ''
-    const assistantIndex = messages.value.push({ role: 'assistant', content: '' }) - 1
+    const assistantMessage: ChatMessage = { role: 'assistant', content: '' }
+    messages.value.push(assistantMessage)
     if (reader) {
       try {
         while (true) {
@@ -92,15 +86,33 @@ async function send() {
             const chunk = decoder.decode(value, { stream: true })
             if (chunk) {
               acc += chunk
-              messages.value[assistantIndex].content = acc
+              // 直接参照を書き換えることで、配列が入れ替わっても上書き誤爆を防ぐ
+              assistantMessage.content = acc
             }
           }
           if (done) break
         }
       } finally {
+        // ストリームの終了で TextDecoder を最終フラッシュ
+        try {
+          const tail = decoder.decode()
+          if (tail) {
+            acc += tail
+            assistantMessage.content = acc
+          }
+        } catch {}
         // ストリームの終了を検知してロード状態を解除
         isStreaming.value = false
       }
+    }
+
+    // ストリーミングが終わってからURLとサイドバーを同期
+    if (pendingNavId) {
+      await navigateTo({ path: '/chat', query: { id: String(pendingNavId) } }, { replace: true })
+      try {
+        const data = await get<{ chats: ChatItem[] }>(`/api/chat/chats`)
+        chats.value = data.chats
+      } catch {}
     }
     // 初回応答完了タイミングでサイドバーを更新（タイトルが確定）
     if (typeof window !== 'undefined') {

@@ -4,17 +4,16 @@ import { getLanguageModel } from './model';
 import { MAX_TOKENS, TEMPERATURE, TOP_P, TOP_K } from './constants';
 import { TITLE_INSTRUCTION } from './prompts';
 import { debugLog } from '../../shared/logger';
+import { buildMessages, type ChatMessage } from './build-messages';
 
 export type Role = 'system' | 'user' | 'assistant';
 
-export interface Message {
-  role: Role;
-  content: string;
-}
+export type Message = ChatMessage;
 
 export interface StreamingOptions {
   toolChoice?: 'none';
   onFinish?: (args: { text: string; finishReason?: string }) => Promise<void> | void;
+  abortSignal?: AbortSignal;
 }
 
 export interface StreamTextResult {
@@ -25,12 +24,11 @@ export async function streamText(messages: Message[], env: { includeTitleInstruc
   const model: LanguageModelV1 = getLanguageModel();
 
   // Vercel AI SDK に合わせる
-  const vercelMessages: CoreMessage[] = (() => {
-    // 初回応答時のみ TITLE_INSTRUCTION を system で先頭に追加可能
-    const addTitle = Boolean(env?.includeTitleInstruction);
-    const base = messages.map((m) => ({ role: m.role as any, content: m.content }));
-    return addTitle ? ([{ role: 'system' as any, content: TITLE_INSTRUCTION }, ...base]) : base;
-  })();
+  const addTitle = Boolean(env?.includeTitleInstruction);
+  const base: CoreMessage[] = buildMessages(messages, {});
+  const vercelMessages: CoreMessage[] = addTitle
+    ? ([{ role: 'system' as any, content: TITLE_INSTRUCTION }, ...base])
+    : base;
 
   debugLog('LLM: request', {
     model: 'gemini',
@@ -49,6 +47,7 @@ export async function streamText(messages: Message[], env: { includeTitleInstruc
     temperature: TEMPERATURE,
     ...(TOP_P !== undefined ? { topP: TOP_P } : {}),
     ...(TOP_K !== undefined ? { topK: TOP_K } : {}),
+    ...(options?.abortSignal ? { abortSignal: options.abortSignal } : {}),
     onFinish: async (event: { text: string; finishReason?: string }) => {
       debugLog('LLM: onFinish', { finishReason: event.finishReason, textLength: (event.text || '').length });
       await options?.onFinish?.({ text: event.text, finishReason: event.finishReason });

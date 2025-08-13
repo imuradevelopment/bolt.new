@@ -7,7 +7,7 @@ import { sseToPlainTextTransform } from '../../../shared/streaming/sseToPlainTex
 import { createChatIfNotExists, insertMessage, setTitleIfEmpty, getMessagesByChat } from './repository';
 import { debugLog, debugError } from '../../../shared/logger';
 
-export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null) {
+export async function chatService(body: ChatBody, chatId?: number | null, userId?: number | null, abortSignal?: AbortSignal) {
   const clientMessages = body.messages;
 
   debugLog('chatService: begin', { userId, chatId, messagesCount: clientMessages.length });
@@ -33,6 +33,10 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
   messages = rows.map((r) => ({ role: r.role, content: r.content })) as typeof messages;
   debugLog('chatService: authoritative messages loaded', { effectiveChatId, messagesCount: messages.length });
 
+  // 簡易プリトリム（全履歴投げのMVPだが、極端な超過時に古いペアから落とす）
+  messages = trimHistoryForBudget(messages, MAX_TOKENS * 4);
+  debugLog('chatService: messages after pre-trim', { effectiveChatId, messagesCount: messages.length });
+
   const stream = new SwitchableStream();
 
   const stringToStream = (text: string): ReadableStream<Uint8Array> => {
@@ -47,6 +51,7 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
 
   const options: StreamingOptions = {
     toolChoice: 'none',
+    abortSignal,
     onFinish: async ({ text, finishReason }) => {
       debugLog('chatService.onFinish', {
         effectiveChatId,
@@ -110,7 +115,9 @@ export async function chatService(body: ChatBody, chatId?: number | null, userId
       }
 
       if (stream.switches >= MAX_RESPONSE_SEGMENTS) {
-        throw new Error('Cannot continue message: Maximum segments reached');
+        debugLog('chatService: max response segments reached, closing stream');
+        stream.close();
+        return;
       }
 
       const switchesLeft = MAX_RESPONSE_SEGMENTS - stream.switches;
@@ -149,6 +156,37 @@ function generateTitle(user: string, assistant: string): string {
   const cut = text.split(/[。！？!?.\n]/)[0] || text;
   const trimmed = cut.slice(0, 50);
   return trimmed || 'New Chat';
+}
+
+function trimHistoryForBudget(
+  original: { role: 'system' | 'user' | 'assistant'; content: string }[],
+  charBudget: number
+): { role: 'system' | 'user' | 'assistant'; content: string }[] {
+  const messages = [...original];
+  const estimateChars = () => messages.reduce((s, m) => s + (m.content?.length || 0), 0);
+  const within = () => estimateChars() <= charBudget || messages.length <= 2;
+  // 末尾のユーザ入力は必ず保持する
+  const lastUserIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) if (messages[i].role === 'user') return i;
+    return -1;
+  })();
+  if (lastUserIndex < 0) return messages;
+  while (!within()) {
+    // 最古の user を探して、その user と直後の assistant（あれば）を落とす
+    let dropUser = -1;
+    for (let i = 0; i < messages.length; i += 1) {
+      if (messages[i].role !== 'user') continue;
+      if (i === lastUserIndex) break; // 最終 user は保持
+      dropUser = i;
+      break;
+    }
+    if (dropUser === -1) break;
+    const toRemove: number[] = [dropUser];
+    if (messages[dropUser + 1]?.role === 'assistant') toRemove.push(dropUser + 1);
+    // 実際に削除（後ろから）
+    toRemove.sort((a, b) => b - a).forEach((idx) => messages.splice(idx, 1));
+  }
+  return messages;
 }
 
 

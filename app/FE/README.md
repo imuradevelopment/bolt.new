@@ -21,7 +21,7 @@ cp .env.example .env
 
 ```
 cd app/FE
-docker compose up --build
+docker compose up -d --build
 # http://localhost:3000 （API_BASE_URL は be サービス/ローカル BE に合わせる）
 # 停止: docker compose down
 ```

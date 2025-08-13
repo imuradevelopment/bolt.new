@@ -21,7 +21,7 @@ cp .env.example .env
 
 ```
 cd app/BE
-docker compose up --build
+docker compose up -d --build
 # BE: http://localhost:4000 （DB: Postgres は同一 compose の db サービス）
 # 停止: docker compose down
 ```

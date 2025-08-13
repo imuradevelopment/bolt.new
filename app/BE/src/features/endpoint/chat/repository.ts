@@ -50,7 +50,7 @@ export async function insertMessage(chatId: number, role: 'user' | 'assistant' |
   ]);
   // touch chats.updated_at if column exists (best-effort)
   try {
-    await pool.query('UPDATE chats SET title = title, created_at = created_at WHERE id = $1', [Number(chatId)]);
+    await pool.query('UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [Number(chatId)]);
   } catch {}
   debugLog('repository: message inserted', { chatId, role, length: content.length, id: rows[0]?.id });
   return Number(rows[0]?.id || 0);

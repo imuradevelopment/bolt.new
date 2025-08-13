@@ -12,6 +12,11 @@ Table chats {
   user_id integer [ref: > users.id]
   title text
   created_at datetime [default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id) [name: 'idx_chats_user_id']
+  }
 }
 
 Table messages {
@@ -20,6 +25,10 @@ Table messages {
   role text
   content text
   created_at datetime [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (chat_id) [name: 'idx_messages_chat_id']
+  }
 }
 
 // Foreign keys are defined inline above.

@@ -25,23 +25,37 @@ export function chatRouter() {
         chatIdHeader: chatIdParam ?? null,
         messages: parse.data.messages.length,
       });
-      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId, userId);
+      const abortController = new AbortController();
+      const { readable, chatId: effectiveChatId } = await chatService(parse.data, chatId, userId, abortController.signal);
       res.setHeader('X-Chat-Id', String(effectiveChatId));
       debugLog('POST /api/chat streaming begin', { effectiveChatId });
-      sendPlainStream(req, res, readable);
+      sendPlainStream(req, res, readable, () => abortController.abort());
     } catch (error) {
-      if ((error as any)?.code === 'USER_NOT_FOUND') {
+      const code = (error as any)?.code || '';
+      const msg = String((error as any)?.message || '');
+      // known validation/auth
+      if (code === 'USER_NOT_FOUND') {
         debugWarn('POST /api/chat user not found');
         return res.status(401).json({ error: 'Invalid user (please login again)' });
       }
-      if ((error as any)?.code === 'INVALID_LAST_MESSAGE') {
+      if (code === 'INVALID_LAST_MESSAGE') {
         debugWarn('POST /api/chat last message must be user');
         return res.status(400).json({ error: 'Invalid body: last message must be user' });
+      }
+      // rate limit like
+      if (/rate/i.test(msg)) {
+        debugWarn('POST /api/chat rate limited');
+        return res.status(429).json({ error: 'Rate limited. Please retry after a short wait.' });
+      }
+      // context length like
+      if (/context|token|length|Too Long/i.test(msg)) {
+        debugWarn('POST /api/chat context length exceeded');
+        return res.status(413).json({ error: 'Input too large. Please shorten the conversation.' });
       }
       // eslint-disable-next-line no-console
       console.error(error);
       debugError('POST /api/chat failed', error);
-      res.status(500).end();
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   });
 

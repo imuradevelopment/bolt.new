@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS chats (
   user_id INTEGER,
   title TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -37,6 +38,10 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (chat_id) REFERENCES chats(id)
 );
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX IF NOT EXISTS idx_chats_user_id ON chats(user_id);
 `;
 
   const sqlSqlite = `PRAGMA foreign_keys = ON;
@@ -52,6 +57,7 @@ CREATE TABLE IF NOT EXISTS chats (
   user_id INTEGER,
   title TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
@@ -63,6 +69,10 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (chat_id) REFERENCES chats(id)
 );
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX IF NOT EXISTS idx_chats_user_id ON chats(user_id);
 `;
 
   const sql = sqlPg;
