@@ -172,26 +172,22 @@ bolt.yaml                       # OpenAPI 仕様（任意/将来追加）
 ## 環境変数（開発例）
 ```
 PORT=4000
-LLM_PROVIDER=gemini           # 'gemini' | 'azure-openai' | 'openai'
+LLM_PROVIDER=gemini           # 'gemini' | 'azure-openai'
 GEMINI_API_KEY=...
-GEMINI_MODEL=models/gemini-2.5-pro
+GEMINI_MODEL=gemini-2.5-pro
 
-# 生成パラメータ（必須・フォールバック無し）
-# Google AI Studio の Gemini 2.5 Pro デフォルトに合わせる例
-LLM_MAX_TOKENS=65536
+# 生成パラメータ（暫定の既定。将来はHub側で自動調整）
+LLM_MAX_TOKENS=4096           # プロバイダー上限に合わせ、過大値は避ける
 LLM_MAX_RESPONSE_SEGMENTS=0   # 継続呼び出しを抑止（1以上で“続きを生成”を許可）
 LLM_TEMPERATURE=1
-# （任意）Studio既定に近づける例
-LLM_TOP_P=0.95
-# LLM_TOP_K=40
+LLM_TOP_P=0.95                # （Gemini/一部モデルのみ）
+# LLM_TOP_K=40                # （Geminiのみ必要なら）
 
 # Azure OpenAI を使う場合（LLM_PROVIDER=azure-openai）
 AZURE_OPENAI_API_KEY=...
 AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2025-01-01-preview
-
-# OpenAI を使う場合（LLM_PROVIDER=openai）
-OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-4o-mini
+# （任意）URLにapi-versionが無い場合は下記で明示
+# AZURE_OPENAI_API_VERSION=2025-01-01-preview
 ```
 
 ## CORS

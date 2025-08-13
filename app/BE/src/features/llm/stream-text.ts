@@ -5,6 +5,7 @@ import { MAX_TOKENS, TEMPERATURE, TOP_P, TOP_K } from './constants';
 import { TITLE_INSTRUCTION } from './prompts';
 import { debugLog } from '../../shared/logger';
 import { buildMessages, type ChatMessage } from './build-messages';
+import { computeMaxOutputTokens, estimatePromptTokens, getContextWindow, normalizeGenParams } from './provider-hub';
 
 export type Role = 'system' | 'user' | 'assistant';
 
@@ -34,12 +35,30 @@ export async function streamText(
     ? ([{ role: 'system' as any, content: TITLE_INSTRUCTION }, ...base])
     : base;
 
+  // Provider Hub: prompt token 計測 + maxTokens 自動算出
+  const provider = (env?.provider === 'azure-openai' ? 'azure-openai' : 'gemini') as 'gemini' | 'azure-openai';
+  const modelId = (env?.model || '').replace(/^models\//, '');
+  const contextWindow = getContextWindow(provider, modelId);
+  const promptTokens = estimatePromptTokens(provider, modelId, vercelMessages.map((m) => String((m as any).content || '')));
+  const autoMaxTokens = computeMaxOutputTokens({
+    contextWindow,
+    promptTokens,
+    ratioCap: process.env.LLM_OUTPUT_TOKENS_RATIO ? Number(process.env.LLM_OUTPUT_TOKENS_RATIO) : undefined,
+    absCap: process.env.LLM_OUTPUT_TOKENS_ABS_MAX ? Number(process.env.LLM_OUTPUT_TOKENS_ABS_MAX) : undefined,
+  });
+
+  const genParams = normalizeGenParams(provider, {
+    temperature: process.env.LLM_TEMPERATURE ? Number(process.env.LLM_TEMPERATURE) : TEMPERATURE,
+    topP: process.env.LLM_TOP_P ? Number(process.env.LLM_TOP_P) : TOP_P,
+    topK: process.env.LLM_TOP_K ? Number(process.env.LLM_TOP_K) : TOP_K,
+  });
+
   debugLog('LLM: request', {
-    model: env?.provider || 'gemini',
-    maxTokens: MAX_TOKENS,
-    temperature: TEMPERATURE,
-    topP: TOP_P,
-    topK: TOP_K,
+    model: provider,
+    maxTokens: autoMaxTokens,
+    temperature: genParams.temperature,
+    topP: genParams.topP,
+    topK: genParams.topK,
     includeTitleInstruction: Boolean(env?.includeTitleInstruction),
     messagesCount: vercelMessages.length,
   });
@@ -47,10 +66,10 @@ export async function streamText(
   const result = await aiStreamText({
     model,
     messages: vercelMessages,
-    maxTokens: MAX_TOKENS,
-    temperature: TEMPERATURE,
-    ...(TOP_P !== undefined ? { topP: TOP_P } : {}),
-    ...(TOP_K !== undefined ? { topK: TOP_K } : {}),
+    maxTokens: autoMaxTokens,
+    ...(genParams.temperature !== undefined ? { temperature: genParams.temperature } : {}),
+    ...(genParams.topP !== undefined ? { topP: genParams.topP } : {}),
+    ...(genParams.topK !== undefined ? { topK: genParams.topK } : {}),
     ...(options?.abortSignal ? { abortSignal: options.abortSignal } : {}),
     onFinish: async (event: { text: string; finishReason?: string }) => {
       debugLog('LLM: onFinish', { finishReason: event.finishReason, textLength: (event.text || '').length });
