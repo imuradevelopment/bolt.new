@@ -42,7 +42,19 @@ export function getLanguageModel(runtime?: { provider?: Provider; model?: string
 
     const baseURL = `${resource}/openai/deployments/${deployment}`;
     debugLog('LLM: provider setup', { provider, model: 'deployment' });
-    const client = createOpenAI({ apiKey, baseURL, apiVersion, compatibility: 'azure' } as any);
+    const client = createOpenAI({
+      apiKey,
+      baseURL,
+      compatibility: 'azure',
+      // ai-sdk のバージョン差異に備え、api-version を必ず付与する fetch ラッパーを適用
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fetch: async (input: any, init?: any) => {
+        const urlStr = typeof input === 'string' ? input : input?.url || '';
+        const needsVersion = urlStr.startsWith(baseURL) && !/api-version=/.test(urlStr);
+        const finalUrl = needsVersion ? `${urlStr}${urlStr.includes('?') ? '&' : '?'}api-version=${encodeURIComponent(apiVersion)}` : urlStr;
+        return fetch(finalUrl, init);
+      },
+    } as any);
     // For Azure, model id is ignored by endpoint (deployment in baseURL)
     return client(runtime?.model || 'gpt-4o');
   }
