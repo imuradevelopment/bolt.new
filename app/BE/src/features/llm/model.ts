@@ -1,6 +1,9 @@
 import { google } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
+// process は Node グローバルだが、型解決エラー回避のため明示importは不要
 import type { LanguageModelV1 } from 'ai';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const process: any;
 import { debugLog } from '../../shared/logger';
 
 export type Provider = 'gemini' | 'azure-openai' | 'openai';
@@ -19,15 +22,29 @@ export function getLanguageModel(runtime?: { provider?: Provider; model?: string
     return google(configuredModel);
   }
 
-  if (provider === 'openai' || provider === 'azure-openai') {
-    const isAzure = provider === 'azure-openai';
-    const apiKey = isAzure ? (process.env.AZURE_OPENAI_API_KEY || runtime?.extra?.AZURE_OPENAI_API_KEY) : process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error(isAzure ? 'Missing required env: AZURE_OPENAI_API_KEY' : 'Missing required env: OPENAI_API_KEY');
-    const baseURL = isAzure ? (process.env.AZURE_OPENAI_ENDPOINT || runtime?.extra?.AZURE_OPENAI_ENDPOINT) : (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1');
-    const client = createOpenAI({ apiKey, baseURL });
-    const model = runtime?.model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
-    debugLog('LLM: provider setup', { provider, model });
-    return client(model);
+  if (provider === 'openai') {
+    // OpenAI (disabled by request; keep branch for future use)
+    throw new Error('OpenAI provider is disabled. Use Gemini or Azure OpenAI.');
+  }
+
+  if (provider === 'azure-openai') {
+    const apiKey = process.env.AZURE_OPENAI_API_KEY || runtime?.extra?.AZURE_OPENAI_API_KEY;
+    const rawEndpoint = process.env.AZURE_OPENAI_ENDPOINT || runtime?.extra?.AZURE_OPENAI_ENDPOINT; // can be resource or full endpoint
+    const deploymentEnv = process.env.AZURE_OPENAI_DEPLOYMENT || runtime?.extra?.AZURE_OPENAI_DEPLOYMENT || '';
+    if (!apiKey) throw new Error('Missing required env: AZURE_OPENAI_API_KEY');
+    if (!rawEndpoint) throw new Error('Missing required env: AZURE_OPENAI_ENDPOINT');
+
+    const parsed = parseAzureEndpoint(rawEndpoint);
+    const resource = parsed.resource; // like https://product-gi.openai.azure.com
+    const deployment = deploymentEnv || parsed.deployment;
+    const apiVersion = parsed.apiVersion || process.env.AZURE_OPENAI_API_VERSION || '2025-01-01-preview';
+    if (!deployment) throw new Error('Missing Azure deployment. Set AZURE_OPENAI_DEPLOYMENT or include it in AZURE_OPENAI_ENDPOINT.');
+
+    const baseURL = `${resource}/openai/deployments/${deployment}`;
+    debugLog('LLM: provider setup', { provider, model: 'deployment' });
+    const client = createOpenAI({ apiKey, baseURL, apiVersion, compatibility: 'azure' } as any);
+    // For Azure, model id is ignored by endpoint (deployment in baseURL)
+    return client('gpt-4o');
   }
 
   throw new Error(`Unsupported LLM provider: ${provider}`);
@@ -35,6 +52,24 @@ export function getLanguageModel(runtime?: { provider?: Provider; model?: string
 
 function normalizeGeminiModelId(model: string): string {
   return model.startsWith('models/') ? model : `models/${model}`;
+}
+
+function parseAzureEndpoint(input: string): { resource: string; deployment: string; apiVersion: string } {
+  try {
+    // Examples:
+    // https://product-gi.openai.azure.com
+    // https://product-gi.openai.azure.com/openai/deployments/gpt-4o-2/chat/completions?api-version=2025-01-01-preview
+    const url = new URL(input.includes('://') ? input : `https://${input}`);
+    const resource = `${url.protocol}//${url.host}`;
+    const parts = url.pathname.split('/').filter(Boolean);
+    const idx = parts.findIndex((p) => p === 'deployments');
+    const deployment = idx >= 0 && parts[idx + 1] ? parts[idx + 1] : '';
+    const params = new URLSearchParams(url.search);
+    const apiVersion = params.get('api-version') || '';
+    return { resource, deployment, apiVersion };
+  } catch {
+    return { resource: input.replace(/\/openai.*$/, ''), deployment: '', apiVersion: '' };
+  }
 }
 
 

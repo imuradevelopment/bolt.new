@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useJwtAuth } from '~/composables/useJwtAuth'
 import { useModelSelector } from '~/composables/useModelSelector'
 
@@ -33,10 +33,10 @@ const { token, name: displayName, clear } = useJwtAuth()
 const isLoggedIn = computed(() => Boolean(token.value))
 const name = computed(() => displayName.value || 'user')
 const open = ref(false)
-const { selection, setProvider, setModel, providers, modelsForSelected, loaded, loadOptions } = useModelSelector()
+const { selection, setProvider, setModel, providers: providerDefs, modelsForSelected, loaded, loadOptions } = useModelSelector()
 const provider = computed({ get: () => selection.value.provider, set: (v) => setProvider(v as any) })
 const model = computed({ get: () => selection.value.model, set: (v) => setModel(v) })
-const providers = providers
+const providers = providerDefs
 const models = modelsForSelected
 
 function toggle() { open.value = !open.value }
